@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <!-- Fundo escuro espacial -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05080f" />
+      <stop offset="55%" stop-color="#091122" />
+      <stop offset="100%" stop-color="#04070d" />
+    </linearGradient>
+
+    <!-- Brilho Neon Ciano/Azul -->
+    <radialGradient id="glowCyan" cx="80%" cy="25%" r="55%">
+      <stop offset="0%" stop-color="#00f5d4" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#00f5d4" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="glowBlue" cx="15%" cy="85%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Gradiente de destaque para título e bordas -->
+    <linearGradient id="neonStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f5d4" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+
+    <!-- Padrão de grade em perspectiva -->
+    <pattern id="gridPattern" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#00f5d4" stroke-opacity="0.07" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <!-- Camada Base -->
+  <rect width="1200" height="630" fill="url(#bgGrad)" />
+  <rect width="1200" height="630" fill="url(#gridPattern)" />
+  <rect width="1200" height="630" fill="url(#glowCyan)" />
+  <rect width="1200" height="630" fill="url(#glowBlue)" />
+
+  <!-- Moldura Externa Futurista -->
+  <rect x="28" y="28" width="1144" height="574" rx="28" fill="rgba(13, 19, 33, 0.72)" stroke="url(#neonStroke)" stroke-opacity="0.35" stroke-width="2" />
+
+  <!-- Detalhes de Terminal no Topo -->
+  <circle cx="72" cy="72" r="7" fill="#fb7185" />
+  <circle cx="96" cy="72" r="7" fill="#fbbf24" />
+  <circle cx="120" cy="72" r="7" fill="#34d399" />
+  <text x="150" y="77" font-family="'JetBrains Mono', monospace" font-size="16" fill="#94a3b8">marcotuliogr.github.io — 3D Interactive Portfolio</text>
+
+  <!-- Badge de Status -->
+  <rect x="860" y="54" width="275" height="36" rx="18" fill="rgba(16, 185, 129, 0.14)" stroke="#34d399" stroke-opacity="0.5" stroke-width="1.5" />
+  <circle cx="884" cy="72" r="6" fill="#34d399" />
+  <text x="900" y="78" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="bold" fill="#6ee7b7">Aberto a Estágio Dev</text>
+
+  <!-- Conteúdo Principal à Esquerda -->
+  <text x="72" y="175" font-family="'JetBrains Mono', monospace" font-size="22" font-weight="bold" fill="#00f5d4">&gt; Hello, World! I'm</text>
+
+  <text x="72" y="248" font-family="'JetBrains Mono', monospace" font-size="56" font-weight="800" fill="#f8fafc">Marco Túlio</text>
+  <text x="72" y="305" font-family="'JetBrains Mono', monospace" font-size="44" font-weight="700" fill="#cbd5e1">Gonçalves Ribeiro</text>
+
+  <text x="72" y="362" font-family="'Inter', sans-serif" font-size="25" font-weight="500" fill="#94a3b8">
+    Desenvolvedor Fullstack · Estudante de ADS (PUC Minas)
+  </text>
+
+  <!-- Chips da Stack Tecnológica -->
+  <g transform="translate(72, 405)">
+    <!-- Chip 1 -->
+    <rect x="0" y="0" width="165" height="44" rx="12" fill="rgba(0, 245, 212, 0.12)" stroke="#00f5d4" stroke-opacity="0.45" stroke-width="1.5" />
+    <text x="82.5" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="bold" fill="#00f5d4">TypeScript</text>
+
+    <!-- Chip 2 -->
+    <rect x="180" y="0" width="185" height="44" rx="12" fill="rgba(56, 189, 248, 0.12)" stroke="#38bdf8" stroke-opacity="0.45" stroke-width="1.5" />
+    <text x="272.5" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="bold" fill="#38bdf8">React Native</text>
+
+    <!-- Chip 3 -->
+    <rect x="380" y="0" width="135" height="44" rx="12" fill="rgba(52, 211, 153, 0.12)" stroke="#34d399" stroke-opacity="0.45" stroke-width="1.5" />
+    <text x="447.5" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="bold" fill="#6ee7b7">Node.js</text>
+
+    <!-- Chip 4 -->
+    <rect x="530" y="0" width="135" height="44" rx="12" fill="rgba(167, 139, 250, 0.12)" stroke="#a78bfa" stroke-opacity="0.45" stroke-width="1.5" />
+    <text x="597.5" y="28" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="bold" fill="#c4b5fd">MongoDB</text>
+
+    <!-- Segunda linha de chips -->
+    <rect x="0" y="58" width="245" height="44" rx="12" fill="rgba(0, 245, 212, 0.12)" stroke="#00f5d4" stroke-opacity="0.45" stroke-width="1.5" />
+    <text x="122.5" y="86" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="bold" fill="#00f5d4">IA Generativa &amp; RAG</text>
+
+    <rect x="260" y="58" width="185" height="44" rx="12" fill="rgba(56, 189, 248, 0.12)" stroke="#38bdf8" stroke-opacity="0.45" stroke-width="1.5" />
+    <text x="352.5" y="86" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="bold" fill="#38bdf8">AWS Bedrock</text>
+  </g>
+
+  <!-- Elemento 3D Orbital Decorativo à Direita -->
+  <g transform="translate(975, 340)">
+    <!-- Anéis 3D simulados -->
+    <ellipse cx="0" cy="0" rx="145" ry="52" fill="none" stroke="#00f5d4" stroke-opacity="0.4" stroke-width="2.5" transform="rotate(-24)" />
+    <ellipse cx="0" cy="0" rx="145" ry="52" fill="none" stroke="#38bdf8" stroke-opacity="0.4" stroke-width="2" transform="rotate(32)" />
+    <ellipse cx="0" cy="0" rx="115" ry="115" fill="rgba(13, 19, 33, 0.9)" stroke="url(#neonStroke)" stroke-width="3" />
+
+    <!-- Monograma MT Central -->
+    <text x="0" y="16" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="64" font-weight="800" fill="url(#neonStroke)">MT</text>
+    <text x="0" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="14" letter-spacing="3" fill="#94a3b8">FULLSTACK</text>
+
+    <!-- Satélites orbitais -->
+    <circle cx="-122" cy="54" r="8" fill="#00f5d4" />
+    <circle cx="118" cy="-58" r="7" fill="#38bdf8" />
+  </g>
+</svg>

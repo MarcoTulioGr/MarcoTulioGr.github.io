@@ -1,0 +1,2430 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Marco Túlio | Desenvolvedor Fullstack & IA</title>
+  <meta name="description" content="Marco Túlio | Desenvolvedor Fullstack & IA" />
+  <meta name="theme-color" content="#05080f" />
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:title" content="Marco Túlio | Desenvolvedor Fullstack & IA" />
+  <meta property="og:description" content="Portfólio interativo em 3D. Estudante de ADS na PUC Minas e Desenvolvedor Fullstack no QuestCard (TypeScript, React Native, Node.js, MongoDB e IA)." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://marcotuliogr.github.io" />
+  <meta property="og:image" content="https://marcotuliogr.github.io/preview-og.png" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:locale:alternate" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Marco Túlio | Desenvolvedor Fullstack & IA" />
+  <meta name="twitter:description" content="Portfólio interativo em 3D. Desenvolvedor Fullstack (TypeScript, React Native, Node.js, MongoDB e IA)." />
+  <meta name="twitter:image" content="https://marcotuliogr.github.io/preview-og.png" />
+
+  <!-- Favicon SVG Monograma MT -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2305080f'/%3E%3Crect x='3' y='3' width='58' height='58' rx='11' fill='none' stroke='%2300f5d4' stroke-width='3'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='bold' font-size='26' fill='%2300f5d4'%3EMT%3C/text%3E%3C/svg%3E" />
+
+  <!-- Google Fonts: JetBrains Mono & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#05080f',
+              surface: 'rgba(13, 20, 36, 0.72)',
+              neon: '#00f5d4',
+              neonAlt: '#38bdf8',
+              lightBg: '#f1f5f9',
+              lightSurface: 'rgba(255, 255, 255, 0.82)',
+              lightAccent: '#0284c7'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Import Map para Three.js -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent: #00f5d4;
+      --accent-glow: rgba(0, 245, 212, 0.35);
+      --bg-primary: #05080f;
+      --surface-bg: rgba(12, 19, 34, 0.75);
+      --surface-border: rgba(0, 245, 212, 0.22);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+    }
+
+    html.light {
+      --accent: #0284c7;
+      --accent-glow: rgba(2, 132, 199, 0.25);
+      --bg-primary: #f1f5f9;
+      --surface-bg: rgba(255, 255, 255, 0.84);
+      --surface-border: rgba(2, 132, 199, 0.25);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Canvas 3D de fundo */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Fallback CSS 3D leve quando WebGL desativado ou prefers-reduced-motion */
+    #css-3d-fallback {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      perspective: 900px;
+      overflow: hidden;
+      display: none;
+    }
+    #css-3d-fallback .grid-plane {
+      position: absolute;
+      inset: -50%;
+      background-image:
+        linear-gradient(to right, rgba(0, 245, 212, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 245, 212, 0.12) 1px, transparent 1px);
+      background-size: 60px 60px;
+      transform: rotateX(65deg) translateZ(-120px);
+    }
+
+    /* Viewport Horizontal 3D */
+    #horizontal-viewport {
+      position: relative;
+      z-index: 10;
+      width: 100vw;
+      height: 100dvh;
+      perspective: 1400px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .station-slide {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      touch-action: pan-y;
+      transform-style: preserve-3d;
+      will-change: transform, opacity, filter;
+      padding: 5.25rem 1.25rem 5.5rem 1.25rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) transparent;
+    }
+
+    @media (min-width: 768px) {
+      .station-slide {
+        padding: 5.5rem 3.5rem 4.5rem 3.5rem;
+      }
+    }
+
+    .station-slide::-webkit-scrollbar {
+      width: 5px;
+    }
+    .station-slide::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 999px;
+    }
+
+    /* Glassmorphism & Cards 3D */
+    .glass-card {
+      background: var(--surface-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--surface-border);
+      box-shadow: 0 18px 40px -15px rgba(0, 0, 0, 0.45), 0 0 20px -5px var(--accent-glow);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .tilt-card {
+      transform-style: preserve-3d;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tilt-glare {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16), transparent 65%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 20;
+    }
+
+    .tilt-inner-depth {
+      transform: translateZ(24px);
+    }
+
+    /* Anel Orbital da Foto */
+    @keyframes spinOrbit {
+      0% { transform: rotateZ(0deg) rotateX(68deg); }
+      100% { transform: rotateZ(360deg) rotateX(68deg); }
+    }
+    @keyframes spinOrbitReverse {
+      0% { transform: rotateZ(360deg) rotateY(68deg); }
+      100% { transform: rotateZ(0deg) rotateY(68deg); }
+    }
+    .orbital-ring-1 {
+      animation: spinOrbit 11s linear infinite;
+    }
+    .orbital-ring-2 {
+      animation: spinOrbitReverse 15s linear infinite;
+    }
+
+    /* Levitação dos cards de Estudando Agora */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotateX(0deg); }
+      50% { transform: translateY(-9px) rotateX(2deg); }
+    }
+    .levitate-card {
+      animation: floatSlow 4.5s ease-in-out infinite;
+    }
+
+    /* Flip 3D para textos i18n e botões */
+    @keyframes flipTextIn {
+      0% { opacity: 0; transform: perspective(600px) rotateX(-75deg); }
+      100% { opacity: 1; transform: perspective(600px) rotateX(0deg); }
+    }
+    .i18n-flip {
+      animation: flipTextIn 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Flip 3D para Cards do Carrossel GitHub */
+    .repo-flip-container {
+      perspective: 1200px;
+    }
+    .repo-flip-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+    }
+    .repo-flip-container.flipped .repo-flip-inner {
+      transform: rotateY(180deg);
+    }
+    .repo-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .repo-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Estante 3D de Tecnologias */
+    .shelf-stage {
+      perspective: 1100px;
+    }
+    .shelf-board {
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out;
+    }
+    .tech-book {
+      transform-style: preserve-3d;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+    }
+    .tech-book:hover, .tech-book:focus-within, .tech-book.active-book {
+      transform: translateZ(34px) translateY(-8px) rotateY(-8deg) scale(1.06);
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 18px var(--accent-glow);
+      z-index: 30;
+    }
+
+    /* Stagger de entrada dos elementos da estação */
+    .stagger-item {
+      opacity: 0;
+      transform: translate3d(28px, 12px, -30px) rotateY(8deg);
+      transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .station-slide.is-active .stagger-item {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) rotateY(0deg);
+    }
+
+    /* Dica de arraste na primeira visita */
+    @keyframes swipeHintAnim {
+      0%, 100% { transform: translateX(0); opacity: 0.85; }
+      50% { transform: translateX(-14px); opacity: 1; }
+    }
+    .swipe-hint-anim {
+      animation: swipeHintAnim 1.6s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbital-ring-1, .orbital-ring-2, .levitate-card, .swipe-hint-anim {
+        animation: none !important;
+      }
+      .stagger-item {
+        transform: none !important;
+        transition: opacity 0.2s ease !important;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-teal-400 selection:text-slate-950">
+
+  <!-- =====================================================================
+       FUNDO 3D (THREE.JS + FALLBACK CSS 3D)
+  ====================================================================== -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div id="css-3d-fallback" aria-hidden="true">
+    <div class="grid-plane"></div>
+  </div>
+
+  <!-- =====================================================================
+       MENU FLUTUANTE SUPERIOR (DESKTOP) / BARRA INFERIOR (MOBILE)
+  ====================================================================== -->
+  <header class="fixed top-0 left-0 right-0 z-40 pointer-events-none px-3 pt-3 md:px-6 md:pt-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      <!-- Marca / Monograma -->
+      <button type="button" data-nav-index="0" class="pointer-events-auto glass-card px-3.5 py-2 rounded-xl flex items-center gap-2 font-mono text-sm font-bold tracking-tight hover:border-[var(--accent)] transition">
+        <span class="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]"></span>
+        <span>MT<span class="text-[var(--accent)]">.dev</span></span>
+      </button>
+
+      <!-- Navegação Desktop -->
+      <nav aria-label="Navegação principal" class="hidden md:flex pointer-events-auto glass-card px-2 py-1.5 rounded-2xl items-center gap-1" id="desktop-nav-links">
+        <!-- Preenchido via JS a partir do CONFIG -->
+      </nav>
+
+      <!-- Controles: Idioma PT/EN e Tema Claro/Escuro -->
+      <div class="pointer-events-auto flex items-center gap-2">
+        <button id="lang-toggle" type="button" aria-label="Alternar idioma PT / EN" class="glass-card px-3 py-2 rounded-xl font-mono text-xs font-bold tracking-wider hover:border-[var(--accent)] transition flex items-center gap-1.5">
+          <span id="lang-pt-label" class="text-[var(--accent)]">PT</span>
+          <span class="opacity-40">|</span>
+          <span id="lang-en-label" class="opacity-60">EN</span>
+        </button>
+
+        <button id="theme-toggle" type="button" aria-label="Alternar tema claro ou escuro" class="glass-card p-2 rounded-xl hover:border-[var(--accent)] transition">
+          <svg id="icon-sun" class="w-4 h-4 hidden text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg id="icon-moon" class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Navegação Mobile (Inferior) -->
+  <nav aria-label="Navegação mobile" id="mobile-nav-links" class="md:hidden fixed bottom-2.5 left-3 right-3 z-40 glass-card rounded-2xl px-2 py-1.5 flex items-center justify-around">
+    <!-- Preenchido via JS -->
+  </nav>
+
+  <!-- Setas Laterais Desktop -->
+  <button id="nav-prev-btn" type="button" aria-label="Tela anterior" class="hidden md:flex fixed left-4 top-1/2 -translate-y-1/2 z-30 glass-card w-11 h-11 rounded-full items-center justify-center text-xl font-mono hover:border-[var(--accent)] hover:scale-110 transition disabled:opacity-25 disabled:pointer-events-none">
+    ‹
+  </button>
+  <button id="nav-next-btn" type="button" aria-label="Próxima tela" class="hidden md:flex fixed right-4 top-1/2 -translate-y-1/2 z-30 glass-card w-11 h-11 rounded-full items-center justify-center text-xl font-mono hover:border-[var(--accent)] hover:scale-110 transition disabled:opacity-25 disabled:pointer-events-none">
+    ›
+  </button>
+
+  <!-- Indicador de Progresso (Pontinhos) -->
+  <div id="progress-dots" role="tablist" aria-label="Indicador de seções" class="hidden md:flex fixed bottom-4 left-1/2 -translate-x-1/2 z-30 glass-card px-3.5 py-2 rounded-full items-center gap-2.5">
+    <!-- Preenchido via JS -->
+  </div>
+
+  <!-- Dica de Arraste na Primeira Visita -->
+  <div id="swipe-hint" class="fixed bottom-20 md:bottom-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none hidden">
+    <div class="glass-card px-4 py-2 rounded-full flex items-center gap-2 font-mono text-xs text-[var(--accent)] swipe-hint-anim shadow-lg">
+      <span id="swipe-hint-icon">👆</span>
+      <span id="swipe-hint-text">Arraste para o lado →</span>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       PALCO HORIZONTAL 3D (ESTAÇÕES)
+  ====================================================================== -->
+  <main id="horizontal-viewport">
+    <!-- ESTAÇÃO 0: QUEM SOU EU -->
+    <section id="inicio" data-station="0" class="station-slide is-active" aria-label="Quem sou eu">
+      <div class="max-w-6xl mx-auto min-h-full flex flex-col justify-center py-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <!-- Coluna Foto Holográfica 3D -->
+          <div class="lg:col-span-5 flex flex-col items-center justify-center stagger-item" style="transition-delay: 60ms;">
+            <div class="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center">
+              <div class="absolute inset-0 rounded-full border-2 border-dashed border-[var(--accent)] opacity-50 orbital-ring-1"></div>
+              <div class="absolute inset-2 rounded-full border border-sky-400/50 orbital-ring-2"></div>
+              <div class="relative w-44 h-44 sm:w-52 sm:h-52 rounded-full p-1.5 glass-card tilt-card" data-tilt>
+                <div class="tilt-glare"></div>
+                <img id="hero-photo" src="" alt="Foto de Marco Túlio Gonçalves Ribeiro" class="w-full h-full object-cover rounded-full border-2 border-[var(--accent)]/60" />
+              </div>
+              <span id="hero-status-badge" class="absolute -bottom-2 px-3.5 py-1 rounded-full glass-card font-mono text-xs font-semibold text-emerald-400 border-emerald-400/40 shadow-lg">
+                🟢 Aberto a estágio
+              </span>
+            </div>
+          </div>
+
+          <!-- Coluna Apresentação e Ações -->
+          <div class="lg:col-span-7 space-y-5 stagger-item" style="transition-delay: 140ms;">
+            <div>
+              <p id="hero-greeting" class="font-mono text-xs sm:text-sm uppercase tracking-widest text-[var(--accent)] mb-1"></p>
+              <h1 id="hero-name" tabindex="-1" class="font-mono text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight outline-none"></h1>
+              <div class="mt-2 h-8 flex items-center font-mono text-lg sm:text-2xl font-bold text-[var(--accent)]">
+                <span class="mr-2 opacity-60">&gt;</span>
+                <span id="typewriter-text"></span>
+                <span class="animate-pulse ml-0.5">_</span>
+              </div>
+            </div>
+
+            <p id="hero-bio" class="text-sm sm:text-base leading-relaxed opacity-90 max-w-2xl"></p>
+
+            <!-- Formação & Idiomas -->
+            <div class="flex flex-wrap gap-2 text-xs font-mono">
+              <span id="hero-edu-badge" class="glass-card px-3 py-1.5 rounded-lg"></span>
+              <span id="hero-lang-badge" class="glass-card px-3 py-1.5 rounded-lg"></span>
+            </div>
+
+            <!-- Botões Principais -->
+            <div class="flex flex-wrap items-center gap-3 pt-1">
+              <button type="button" data-nav-index="2" id="btn-see-projects" class="px-5 py-3 rounded-xl font-mono text-sm font-bold bg-[var(--accent)] text-slate-950 hover:brightness-110 active:scale-95 transition shadow-[0_0_20px_var(--accent-glow)]">
+              </button>
+
+              <a id="btn-download-cv" href="Curriculo_Marco_Tulio_Goncalves2810.pdf" download="Curriculo_Marco_Tulio_Goncalves2810.pdf" class="glass-card px-5 py-3 rounded-xl font-mono text-sm font-bold border-[var(--accent)]/50 hover:border-[var(--accent)] active:scale-95 transition flex items-center gap-2">
+                <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span id="btn-download-cv-label"></span>
+              </a>
+
+              <!-- Ícones Sociais -->
+              <div class="flex items-center gap-2 ml-1">
+                <a id="link-github-hero" href="" target="_blank" rel="noopener" aria-label="GitHub de Marco Túlio" class="glass-card p-3 rounded-xl hover:border-[var(--accent)] hover:-translate-y-0.5 transition">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+                <a id="link-linkedin-hero" href="" target="_blank" rel="noopener" aria-label="LinkedIn de Marco Túlio" class="glass-card p-3 rounded-xl hover:border-[var(--accent)] hover:-translate-y-0.5 transition">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- Bloco Entre em Contato (Card 3D com Tilt) -->
+            <div class="glass-card tilt-card rounded-2xl p-4 sm:p-5 max-w-xl" data-tilt>
+              <div class="tilt-glare"></div>
+              <div class="tilt-inner-depth space-y-3">
+                <h2 id="hero-contact-title" class="font-mono text-xs uppercase tracking-wider text-[var(--accent)] font-bold"></h2>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <!-- Telefone / WhatsApp + Ligar -->
+                  <div class="flex items-center gap-2">
+                    <a id="hero-whatsapp-link" href="" target="_blank" rel="noopener" class="px-3 py-2 rounded-xl bg-emerald-500/15 border border-emerald-400/30 hover:border-emerald-400 text-xs sm:text-sm font-mono flex items-center gap-2 transition">
+                      <span>📱</span>
+                      <span id="hero-phone-text"></span>
+                    </a>
+                    <a id="hero-tel-link" href="" aria-label="Ligar por telefone" class="p-2 rounded-xl glass-card hover:border-[var(--accent)] transition" title="Ligar">
+                      <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </a>
+                  </div>
+
+                  <!-- Botão Copiar E-mail -->
+                  <button type="button" data-copy-email class="px-3.5 py-2 rounded-xl glass-card border-[var(--accent)]/40 hover:border-[var(--accent)] text-xs sm:text-sm font-mono flex items-center gap-2 transition">
+                    <span>✉️</span>
+                    <span class="copy-email-label"></span>
+                  </button>
+                </div>
+                <div class="email-fallback-box hidden text-xs font-mono pt-1">
+                  <input type="text" readonly class="email-fallback-input w-full px-2 py-1 rounded bg-slate-900/80 border border-[var(--accent)] text-[var(--accent)]" />
+                  <p class="email-fallback-msg mt-1 text-amber-300"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTAÇÃO 1: LINHA DO TEMPO DA EXPERIÊNCIA -->
+    <section id="experiencia" data-station="1" class="station-slide" aria-label="Linha do tempo da experiência" inert aria-hidden="true">
+      <div class="max-w-6xl mx-auto py-4 space-y-6">
+        <div class="stagger-item">
+          <p id="timeline-kicker" class="font-mono text-xs uppercase tracking-widest text-[var(--accent)]"></p>
+          <h2 id="timeline-title" tabindex="-1" class="font-mono text-2xl sm:text-4xl font-extrabold mt-1 outline-none"></h2>
+          <p id="timeline-subtitle" class="text-sm sm:text-base opacity-80 mt-1 max-w-2xl"></p>
+        </div>
+
+        <div id="timeline-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+          <!-- Renderizado via JS a partir do CONFIG.timeline -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTAÇÃO 2: PROJETOS (ESTUDOS DE CASO + GITHUB CARROSSEL 3D) -->
+    <section id="projetos" data-station="2" class="station-slide" aria-label="Projetos e repositórios" inert aria-hidden="true">
+      <div class="max-w-6xl mx-auto py-4 space-y-8">
+        <!-- Cabeçalho -->
+        <div class="stagger-item">
+          <p id="projects-kicker" class="font-mono text-xs uppercase tracking-widest text-[var(--accent)]"></p>
+          <h2 id="projects-title" tabindex="-1" class="font-mono text-2xl sm:text-4xl font-extrabold mt-1 outline-none"></h2>
+        </div>
+
+        <!-- Estudos de Caso em Destaque -->
+        <div id="case-studies-container" class="space-y-6 stagger-item" style="transition-delay: 100ms;">
+          <!-- Renderizado via JS -->
+        </div>
+
+        <!-- Repositórios ao Vivo do GitHub (Carrossel 3D) -->
+        <div class="space-y-4 stagger-item" style="transition-delay: 180ms;" data-no-swipe>
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h3 id="gh-section-title" class="font-mono text-lg sm:text-xl font-bold flex items-center gap-2"></h3>
+              <p id="gh-section-sub" class="text-xs opacity-75"></p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <input id="gh-search-input" type="search" aria-label="Buscar repositório" class="glass-card px-3 py-1.5 rounded-xl text-xs font-mono outline-none focus:border-[var(--accent)] w-44 sm:w-56" />
+              <button id="gh-refresh-btn" type="button" class="glass-card px-3 py-1.5 rounded-xl text-xs font-mono hover:border-[var(--accent)] transition"></button>
+            </div>
+          </div>
+
+          <!-- Filtros de Linguagem (Chips) -->
+          <div id="gh-lang-chips" class="flex flex-wrap gap-1.5"></div>
+
+          <!-- Área do Carrossel 3D -->
+          <div class="relative py-2">
+            <div id="gh-carousel-track" class="grid grid-cols-1 md:grid-cols-3 gap-5 transition-all duration-300">
+              <!-- Cards GitHub ou Skeleton -->
+            </div>
+
+            <!-- Controles do Carrossel -->
+            <div class="flex items-center justify-center gap-4 mt-4">
+              <button id="gh-prev-btn" type="button" aria-label="Repositório anterior" class="glass-card px-3.5 py-1.5 rounded-xl font-mono text-xs hover:border-[var(--accent)] transition">←</button>
+              <span id="gh-carousel-indicator" class="font-mono text-xs opacity-80">1 / 1</span>
+              <button id="gh-next-btn" type="button" aria-label="Próximo repositório" class="glass-card px-3.5 py-1.5 rounded-xl font-mono text-xs hover:border-[var(--accent)] transition">→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTAÇÃO 3: ESTUDANDO AGORA -->
+    <section id="estudando" data-station="3" class="station-slide" aria-label="Estudando agora" inert aria-hidden="true">
+      <div class="max-w-6xl mx-auto min-h-full flex flex-col justify-center py-4 space-y-6">
+        <div class="stagger-item">
+          <p id="learning-kicker" class="font-mono text-xs uppercase tracking-widest text-[var(--accent)]"></p>
+          <h2 id="learning-title" tabindex="-1" class="font-mono text-2xl sm:text-4xl font-extrabold mt-1 outline-none"></h2>
+          <p id="learning-subtitle" class="text-sm sm:text-base opacity-80 mt-1"></p>
+        </div>
+
+        <div id="learning-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-2">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTAÇÃO 4: PRATELEIRA DE TECNOLOGIAS 3D -->
+    <section id="tecnologias" data-station="4" class="station-slide" aria-label="Prateleira de tecnologias" inert aria-hidden="true">
+      <div class="max-w-6xl mx-auto py-4 space-y-6">
+        <div class="stagger-item">
+          <p id="tech-kicker" class="font-mono text-xs uppercase tracking-widest text-[var(--accent)]"></p>
+          <h2 id="tech-title" tabindex="-1" class="font-mono text-2xl sm:text-4xl font-extrabold mt-1 outline-none"></h2>
+          <p id="tech-subtitle" class="text-sm opacity-80 mt-1"></p>
+        </div>
+
+        <!-- Painel de Detalhe da Tecnologia Selecionada/Hovered -->
+        <div id="tech-detail-banner" class="glass-card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-[var(--accent)]/40 stagger-item">
+          <div class="flex items-center gap-3">
+            <span id="tech-detail-name" class="font-mono font-bold text-base text-[var(--accent)]"></span>
+            <span id="tech-detail-cat" class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--accent)]/15 text-[var(--accent)]"></span>
+          </div>
+          <p id="tech-detail-usage" class="text-xs sm:text-sm opacity-90"></p>
+        </div>
+
+        <!-- Estante 3D -->
+        <div id="tech-shelves-container" data-no-swipe class="shelf-stage grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTAÇÃO 5: CONTATO / RODAPÉ -->
+    <section id="contato" data-station="5" class="station-slide" aria-label="Contato e rodapé" inert aria-hidden="true">
+      <div class="max-w-4xl mx-auto min-h-full flex flex-col justify-center py-4">
+        <div class="glass-card tilt-card rounded-3xl p-6 sm:p-10 text-center space-y-6 stagger-item" data-tilt>
+          <div class="tilt-glare"></div>
+          <div class="tilt-inner-depth space-y-6">
+            <div>
+              <p id="footer-kicker" class="font-mono text-xs uppercase tracking-widest text-[var(--accent)]"></p>
+              <h2 id="footer-title" tabindex="-1" class="font-mono text-2xl sm:text-4xl font-extrabold mt-2 outline-none"></h2>
+              <p id="footer-subtitle" class="text-sm sm:text-base opacity-80 mt-2 max-w-xl mx-auto"></p>
+            </div>
+
+            <!-- Botões de Ação Direta -->
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <a id="footer-whatsapp-btn" href="" target="_blank" rel="noopener" class="px-5 py-3 rounded-xl font-mono text-sm font-bold bg-emerald-500 text-slate-950 hover:brightness-110 transition flex items-center gap-2">
+                <span>📱</span>
+                <span>WhatsApp</span>
+              </a>
+
+              <button type="button" data-copy-email class="glass-card px-5 py-3 rounded-xl font-mono text-sm font-bold border-[var(--accent)]/50 hover:border-[var(--accent)] transition flex items-center gap-2">
+                <span>✉️</span>
+                <span class="copy-email-label"></span>
+              </button>
+
+              <a id="footer-cv-btn" href="Curriculo_Marco_Tulio_Goncalves2810.pdf" download="Curriculo_Marco_Tulio_Goncalves2810.pdf" class="glass-card px-5 py-3 rounded-xl font-mono text-sm font-bold hover:border-[var(--accent)] transition flex items-center gap-2">
+                <span>📄</span>
+                <span id="footer-cv-label"></span>
+              </a>
+            </div>
+
+            <div class="email-fallback-box hidden max-w-md mx-auto text-xs font-mono">
+              <input type="text" readonly class="email-fallback-input w-full px-2 py-1 rounded bg-slate-900/80 border border-[var(--accent)] text-[var(--accent)] text-center" />
+              <p class="email-fallback-msg mt-1 text-amber-300"></p>
+            </div>
+
+            <!-- Redes Sociais -->
+            <div class="flex items-center justify-center gap-4 pt-2">
+              <a id="footer-linkedin" href="" target="_blank" rel="noopener" class="glass-card px-4 py-2.5 rounded-xl font-mono text-xs font-bold hover:border-[var(--accent)] transition flex items-center gap-2">
+                <span>LinkedIn</span>
+                <span>↗</span>
+              </a>
+              <a id="footer-github" href="" target="_blank" rel="noopener" class="glass-card px-4 py-2.5 rounded-xl font-mono text-xs font-bold hover:border-[var(--accent)] transition flex items-center gap-2">
+                <span>GitHub</span>
+                <span>↗</span>
+              </a>
+            </div>
+
+            <div class="pt-6 border-t border-slate-700/40 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono opacity-65">
+              <span>© <span id="footer-year"></span> Marco Túlio Gonçalves Ribeiro</span>
+              <span id="footer-updated"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Lightbox para Galeria de Estudos de Caso -->
+  <div id="lightbox-modal" role="dialog" aria-modal="true" aria-label="Visualizador de imagem ampliada" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="relative max-w-4xl w-full glass-card rounded-2xl p-3 sm:p-4">
+      <button id="lightbox-close" type="button" aria-label="Fechar visualização" class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-[var(--accent)] text-slate-950 font-mono font-bold shadow-lg hover:scale-110 transition">✕</button>
+      <img id="lightbox-img" src="" alt="Tela ampliada do projeto" class="w-full max-h-[78vh] object-contain rounded-xl" />
+      <p id="lightbox-caption" class="font-mono text-xs text-center mt-2 opacity-85"></p>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       JAVASCRIPT MODULAR (CONFIG + MÓDULOS SEPARADOS)
+  ====================================================================== -->
+  <script type="module">
+    import * as THREE from 'three';
+
+    /* =========================================================================
+       COMO ATUALIZAR ESTE PORTFÓLIO (GUIA RÁPIDO):
+       1. Adicionar um novo projeto (estudo de caso):
+          Copie um bloco dentro de `CONFIG.caseStudies`, cole logo abaixo e preencha
+          título, problema, o que fez, resultado, stack e imagens.
+       2. Destacar um repositório do GitHub automaticamente:
+          No GitHub, abra o repositório -> engrenagem "About" -> adicione o topic
+          `portfolio`. Ele aparecerá primeiro com o selo "⭐ Destaque".
+       3. Adicionar imagem de prévia em um repositório:
+          Suba uma imagem chamada `preview.png` na raiz do repositório no GitHub.
+          O site carrega ela automaticamente; se não existir, usa o OpenGraph do GitHub.
+       4. Trocar ou atualizar o currículo PDF:
+          Coloque o arquivo PDF na mesma pasta deste `index.html` no repositório e
+          atualize `CONFIG.personal.resumeFile` se mudar o nome do arquivo.
+    ========================================================================= */
+
+    const CONFIG = {
+      lastUpdated: '17/11/2026',
+
+      horizontalNav: {
+        dragThresholdRatio: 0.20, // 20% da largura da tela para confirmar troca
+        velocityThreshold: 0.45,  // px/ms para swipe rápido
+        transitionDuration: 520,  // ms da animação de mola/ease-out
+        maxRotateY: 15,           // graus máximos de rotação 3D durante o arraste
+        minScale: 0.92,           // escala mínima da tela que sai
+        tapTolerancePx: 8         // tolerância para diferenciar clique de arraste
+      },
+
+      personal: {
+        name: 'Marco Túlio Gonçalves Ribeiro',
+        shortName: 'Marco Túlio',
+        photo: 'https://github.com/MarcoTulioGr.png',
+        githubUser: 'MarcoTulioGr',
+        githubUrl: 'https://github.com/MarcoTulioGr',
+        linkedinUrl: 'https://www.linkedin.com/in/marco-tulio-gon%C3%A7alves-ribeiro-322b6127b/',
+        phoneDisplay: '(31) 99105-9455',
+        whatsappUrl: 'https://wa.me/5531991059455',
+        telUrl: 'tel:+5531991059455',
+        email: 'marcotuliogr.pr@gmail.com',
+        resumeFile: 'Curriculo_Marco_Tulio_Goncalves2810.pdf',
+        typingWords: ['Fullstack Dev', 'React Native', 'IA Generativa']
+      },
+
+      i18n: {
+        pt: {
+          nav: ['Início', 'Experiência', 'Projetos', 'Estudando', 'Tecnologias', 'Contato'],
+          stationHashes: ['#inicio', '#experiencia', '#projetos', '#estudando', '#tecnologias', '#contato'],
+          swipeHintDesktop: 'Arraste para o lado ou use ← →',
+          swipeHintMobile: 'Arraste para o lado →',
+          heroGreeting: 'Olá, eu sou',
+          heroStatus: '🟢 Aberto a estágio',
+          heroBio: 'Estudante de Análise e Desenvolvimento de Sistemas na PUC Minas e desenvolvedor fullstack no QuestCard, plataforma de estudos para estudantes de Medicina da Argentina (Web, iOS e Android). Com mais de 5 anos em suporte de TI, uno pensamento analítico, foco em resolução de problemas e construção de aplicações modernas com TypeScript, React Native, Node.js, MongoDB e IA.',
+          heroEdu: '🎓 ADS · PUC Minas (2024–2027)',
+          heroLangs: '🌎 Português (nativo) · Inglês (básico, cursando)',
+          btnProjects: 'Bora ver o que eu já construí?',
+          btnDownloadCv: 'Baixar currículo (PDF)',
+          heroContactTitle: 'Entre em contato',
+          copyEmailBtn: 'Copiar meu e-mail',
+          copiedEmailBtn: 'Copiado! ✅',
+          copyFallbackMsg: 'Copia aí com Ctrl+C 😉',
+          timelineKicker: 'Trajetória & Evolução',
+          timelineTitle: 'Linha do tempo da experiência',
+          timelineSubtitle: 'De mais de 5 anos resolvendo incidentes críticos em TI até o desenvolvimento fullstack multiplataforma.',
+          achievementsLabel: 'Principais conquistas',
+          carriedSkillsLabel: 'Competências levadas adiante',
+          projectsKicker: 'Portfólio Prático',
+          projectsTitle: 'Projetos & Repositórios',
+          problemLabel: 'Problema',
+          solutionLabel: 'O que eu fiz',
+          resultLabel: 'Resultado',
+          roleLabel: 'Meu papel',
+          viewCode: 'Ver código',
+          viewLive: 'Ver ao vivo',
+          ghTitle: 'Repositórios ao vivo do GitHub',
+          ghSub: 'Clique em um card para girar em 3D e ver detalhes · Arraste ou use as setas',
+          ghSearchPlaceholder: 'Buscar repositório...',
+          ghRefresh: '↻ Atualizar',
+          ghAllFilter: 'Todos',
+          ghFeaturedBadge: '⭐ Destaque',
+          ghFallbackBanner: 'Ops, o GitHub não respondeu agora, mas olha alguns projetos aqui 👇',
+          ghUpdatedAt: 'Atualizado em',
+          learningKicker: 'Evolução Contínua',
+          learningTitle: 'Estudando agora',
+          learningSubtitle: 'Tecnologias e habilidades que estou aprofundando na prática.',
+          inProgressBadge: 'em andamento',
+          techKicker: 'Stack & Ferramentas',
+          techTitle: 'Prateleira de tecnologias 3D',
+          techSubtitle: 'Passe o mouse ou toque em um bloco para puxá-lo da estante e ver onde utilizei.',
+          techDefaultHint: 'Selecione ou passe o cursor sobre qualquer tecnologia na estante abaixo.',
+          footerKicker: 'Vamos conversar?',
+          footerTitle: 'Informações para contato',
+          footerSubtitle: 'Aberto a oportunidades de estágio em desenvolvimento de software (back-end ou front-end).',
+          lastUpdatedLabel: 'Última atualização:'
+        },
+        en: {
+          nav: ['Home', 'Experience', 'Projects', 'Learning', 'Tech Stack', 'Contact'],
+          stationHashes: ['#home', '#experience', '#projects', '#learning', '#tech', '#contact'],
+          swipeHintDesktop: 'Drag sideways or use ← →',
+          swipeHintMobile: 'Swipe sideways →',
+          heroGreeting: 'Hi, I am',
+          heroStatus: '🟢 Open to internships',
+          heroBio: 'Systems Analysis and Development student at PUC Minas and fullstack developer at QuestCard, a study platform for Medical students in Argentina (Web, iOS, and Android). With 5+ years in IT support, I combine analytical problem-solving with modern development using TypeScript, React Native, Node.js, MongoDB, and AI.',
+          heroEdu: '🎓 Systems Analysis & Dev · PUC Minas (2024–2027)',
+          heroLangs: '🌎 Portuguese (native) · English (basic, studying)',
+          btnProjects: "Wanna see what I've built?",
+          btnDownloadCv: 'Download Resume (PDF)',
+          heroContactTitle: 'Get in touch',
+          copyEmailBtn: 'Copy my e-mail',
+          copiedEmailBtn: 'Copied! ✅',
+          copyFallbackMsg: 'Copy it with Ctrl+C 😉',
+          timelineKicker: 'Journey & Growth',
+          timelineTitle: 'Experience Timeline',
+          timelineSubtitle: 'From 5+ years solving critical IT operations issues to cross-platform fullstack development.',
+          achievementsLabel: 'Key achievements',
+          carriedSkillsLabel: 'Skills carried forward',
+          projectsKicker: 'Hands-on Work',
+          projectsTitle: 'Projects & Repositories',
+          problemLabel: 'Problem',
+          solutionLabel: 'What I did',
+          resultLabel: 'Result',
+          roleLabel: 'My role',
+          viewCode: 'View code',
+          viewLive: 'Live demo',
+          ghTitle: 'Live GitHub Repositories',
+          ghSub: 'Click a card to flip in 3D for details · Drag or use arrows',
+          ghSearchPlaceholder: 'Search repository...',
+          ghRefresh: '↻ Refresh',
+          ghAllFilter: 'All',
+          ghFeaturedBadge: '⭐ Featured',
+          ghFallbackBanner: "Oops, GitHub didn't respond right now, but check out these projects 👇",
+          ghUpdatedAt: 'Updated on',
+          learningKicker: 'Continuous Learning',
+          learningTitle: 'Currently Studying',
+          learningSubtitle: 'Technologies and skills I am actively building with right now.',
+          inProgressBadge: 'in progress',
+          techKicker: 'Stack & Tools',
+          techTitle: '3D Technology Bookshelf',
+          techSubtitle: 'Hover or tap any block to pull it from the shelf and see where I applied it.',
+          techDefaultHint: 'Hover or tap any technology block on the shelf below.',
+          footerKicker: "Let's connect",
+          footerTitle: 'Contact information',
+          footerSubtitle: 'Open to software development internship opportunities (back-end or front-end).',
+          lastUpdatedLabel: 'Last updated:'
+        }
+      },
+
+      timeline: [
+        {
+          period: { pt: '01/2021 – 08/2026 (5+ anos)', en: '01/2021 – 08/2026 (5+ years)' },
+          role: { pt: 'Suporte de TI · Rancho Fundo', en: 'IT Support · Rancho Fundo' },
+          highlight: {
+            pt: 'Diferencial: resolução rápida de problemas sob pressão e contato direto com usuários finais.',
+            en: 'Key edge: fast troubleshooting under pressure and direct contact with end users.'
+          },
+          achievements: {
+            pt: [
+              'Suporte completo a sistemas PDV/ERP, integração fiscal (ACBr), emissão de notas e backups.',
+              'Manutenção de infraestrutura de redes (Wi-Fi/internet), computadores e periféricos críticos para vendas.',
+              'Treinamento operacional de equipes e suporte técnico presencial e remoto.'
+            ],
+            en: [
+              'Full support for POS/ERP systems, tax integration (ACBr), invoicing, and automated backups.',
+              'Maintenance of network infrastructure, workstations, and mission-critical store hardware.',
+              'Staff onboarding/training and direct on-site and remote technical troubleshooting.'
+            ]
+          },
+          carriedSkills: {
+            pt: ['Pensamento analítico', 'Diagnóstico sob pressão', 'Redes & SQL', 'Empatia com o usuário'],
+            en: ['Analytical thinking', 'Troubleshooting under pressure', 'Networking & SQL', 'User empathy']
+          }
+        },
+        {
+          period: { pt: '06/2024 – 12/2027 (Cursando)', en: '06/2024 – 12/2027 (In progress)' },
+          role: { pt: 'Análise e Desenv. de Sistemas · PUC Minas', en: 'Systems Analysis & Dev · PUC Minas' },
+          highlight: {
+            pt: 'Base sólida em engenharia de software, arquitetura, bancos de dados e metodologias ágeis.',
+            en: 'Strong foundation in software engineering, architecture, databases, and agile practices.'
+          },
+          achievements: {
+            pt: [
+              'Modelagem de bancos de dados relacionais (SQL/MySQL) e não relacionais (MongoDB).',
+              'Desenvolvimento de aplicações web completas com levantamento de requisitos, UML e Scrum.',
+              'Construção de projetos acadêmicos integrando front-end responsivo, back-end e APIs.'
+            ],
+            en: [
+              'Relational (SQL/MySQL) and NoSQL (MongoDB) database modeling and querying.',
+              'End-to-end web application development with requirements engineering, UML, and Scrum.',
+              'Academic software projects integrating responsive front-end, back-end, and REST APIs.'
+            ]
+          },
+          carriedSkills: {
+            pt: ['Engenharia de Software', 'Modelagem de Dados', 'Git & GitHub', 'Scrum / UML'],
+            en: ['Software Engineering', 'Data Modeling', 'Git & GitHub', 'Scrum / UML']
+          }
+        },
+        {
+          period: { pt: '08/2026 – Atual', en: '08/2026 – Present' },
+          role: { pt: 'Desenvolvedor Fullstack · QuestCard', en: 'Fullstack Developer · QuestCard' },
+          highlight: {
+            pt: 'Atuação ponta a ponta em produto real publicado para Web, iOS e Android na Argentina.',
+            en: 'End-to-end development on a live product published for Web, iOS, and Android in Argentina.'
+          },
+          achievements: {
+            pt: [
+              'Desenvolvimento front-end e back-end com base única em TypeScript e React Native (Web, iOS e Android).',
+              'Criação e integração de APIs REST para simulados, banco de questões, flashcards e métricas de desempenho.',
+              'Modelagem de dados em MongoDB e manutenção da experiência em espanhol para estudantes de Medicina.'
+            ],
+            en: [
+              'Front-end and back-end development using a unified TypeScript & React Native codebase (Web, iOS, Android).',
+              'Built and integrated REST APIs for mock exams, question banks, flashcards, and performance analytics.',
+              'MongoDB data modeling and UX maintenance in Spanish for Medical students.'
+            ]
+          },
+          carriedSkills: {
+            pt: ['TypeScript', 'React Native', 'Node.js & REST', 'MongoDB', 'IA & LLMs'],
+            en: ['TypeScript', 'React Native', 'Node.js & REST', 'MongoDB', 'AI & LLMs']
+          }
+        }
+        /* EXEMPLO PARA ADICIONAR NOVO MARCO:
+        ,{
+          period: { pt: '01/2027 – Atual', en: '01/2027 – Present' },
+          role: { pt: 'Estagiário Back-end · Empresa X', en: 'Back-end Intern · Company X' },
+          highlight: { pt: 'Destaque da experiência.', en: 'Experience highlight.' },
+          achievements: { pt: ['Conquista 1', 'Conquista 2'], en: ['Achievement 1', 'Achievement 2'] },
+          carriedSkills: { pt: ['Node.js', 'Docker'], en: ['Node.js', 'Docker'] }
+        }
+        */
+      ],
+
+      caseStudies: [
+        {
+          id: 'questcard',
+          title: 'QuestCard',
+          subtitle: {
+            pt: 'Plataforma de Estudos para Medicina (Web, iOS & Android)',
+            en: 'Medical Study Platform (Web, iOS & Android)'
+          },
+          role: {
+            pt: 'Desenvolvedor Fullstack (TypeScript, React Native, Node.js, MongoDB & IA)',
+            en: 'Fullstack Developer (TypeScript, React Native, Node.js, MongoDB & AI)'
+          },
+          problem: {
+            pt: 'Estudantes de Medicina na Argentina precisavam de uma plataforma unificada, rápida e multiplataforma para treinar com questões comentadas, simulados e flashcards.',
+            en: 'Medical students in Argentina needed a unified, fast cross-platform tool to practice with commented questions, mock exams, and flashcards.'
+          },
+          solution: {
+            pt: 'Desenvolvi funcionalidades fullstack para simulados, banco de questões, decks de flashcards e acompanhamento de desempenho em TypeScript, React Native, APIs REST e MongoDB, além da integração com IA (AWS Bedrock/LLMs) para gerar explicações detalhadas das questões.',
+            en: 'Built fullstack features for mock exams, question banks, flashcard decks, and performance tracking using TypeScript, React Native, REST APIs, and MongoDB, plus AI integration (AWS Bedrock/LLMs) to generate detailed question explanations.'
+          },
+          result: {
+            pt: 'Plataforma publicada e ativa para Web, iOS e Android com base única de código e geração automatizada de explicações por IA. [Espaço reservado para métricas: ex. +X mil questões respondidas]',
+            en: 'Live platform published across Web, iOS, and Android from a single codebase with automated AI explanations. [Placeholder for metrics: e.g., +X thousand questions answered]'
+          },
+          stack: ['TypeScript', 'React Native', 'Node.js', 'MongoDB', 'AWS Bedrock'],
+          links: {
+            code: '',
+            live: ''
+          },
+          gallery: [
+            { src: 'assets/questcard-1.png', caption: { pt: 'QuestCard · Banco de Questões & Simulados', en: 'QuestCard · Question Bank & Mock Exams' } },
+            { src: 'assets/questcard-2.png', caption: { pt: 'QuestCard · Flashcards & Desempenho', en: 'QuestCard · Flashcards & Analytics' } }
+          ]
+        }
+        /* EXEMPLO PARA ADICIONAR NOVO ESTUDO DE CASO:
+        ,{
+          id: 'reconecta-ia',
+          title: 'Reconecta IA',
+          subtitle: { pt: 'Sistema Multiagente de Recolocação', en: 'Multi-Agent Career Assistant' },
+          role: { pt: 'Desenvolvedor IA & Back-end', en: 'AI & Back-end Developer' },
+          problem: { pt: 'Descrição do problema...', en: 'Problem description...' },
+          solution: { pt: 'O que eu construí...', en: 'What I built...' },
+          result: { pt: 'Resultado obtido...', en: 'Achieved result...' },
+          stack: ['Node.js', 'JavaScript', 'LLMs'],
+          links: { code: 'https://github.com/MarcoTulioGr', live: '' },
+          gallery: []
+        }
+        */
+      ],
+
+      fallbackRepos: [
+        {
+          name: 'Reconecta-IA',
+          description: 'Sistema multiagente (Scout, Curador e Maestro) para apoio à recolocação profissional com Node.js, OpenRouter LLMs e Firecrawl.',
+          language: 'JavaScript',
+          stargazers_count: 5,
+          updated_at: '2026-10-15T12:00:00Z',
+          html_url: 'https://github.com/MarcoTulioGr',
+          homepage: '',
+          topics: ['portfolio']
+        },
+        {
+          name: 'ReVest-Plataforma',
+          description: 'Plataforma web de compra e venda de roupas usadas com cadastro, anúncios, mensagens, avaliações e painel administrativo em PHP 8.2 e MySQL.',
+          language: 'PHP',
+          stargazers_count: 4,
+          updated_at: '2026-09-20T12:00:00Z',
+          html_url: 'https://github.com/MarcoTulioGr',
+          homepage: '',
+          topics: ['portfolio']
+        },
+        {
+          name: 'QuestCard-Mobile-Web',
+          description: 'Arquitetura multiplataforma em TypeScript e React Native com APIs REST e MongoDB para estudantes de Medicina.',
+          language: 'TypeScript',
+          stargazers_count: 6,
+          updated_at: '2026-11-10T12:00:00Z',
+          html_url: 'https://github.com/MarcoTulioGr',
+          homepage: '',
+          topics: ['portfolio']
+        }
+      ],
+
+      learning: [
+        {
+          title: 'AWS Bedrock',
+          progress: 70,
+          note: {
+            pt: 'Orquestrando modelos fundacionais na nuvem para respostas escaláveis e seguras em produção.',
+            en: 'Orchestrating cloud foundation models for scalable and secure production responses.'
+          }
+        },
+        {
+          title: 'RAG (Retrieval-Augmented Generation)',
+          progress: 75,
+          note: {
+            pt: 'Conectando bases de conhecimento médico e documentos a LLMs para respostas fundamentadas.',
+            en: 'Connecting medical knowledge bases and documents to LLMs for grounded answers.'
+          }
+        },
+        {
+          title: 'Sistemas Multiagente',
+          progress: 68,
+          note: {
+            pt: 'Construindo fluxos com agentes especializados que pesquisam, filtram e validam tarefas.',
+            en: 'Building workflows with specialized agents that search, filter, and validate tasks.'
+          }
+        },
+        {
+          title: { pt: 'Inglês Técnico & Conversação', en: 'Technical & Conversational English' },
+          progress: 45,
+          note: {
+            pt: 'Prática contínua para leitura de documentação oficial, code reviews e reuniões internacionais.',
+            en: 'Continuous practice for reading documentation, code reviews, and international meetings.'
+          }
+        }
+        /* EXEMPLO PARA ADICIONAR ITEM EM ESTUDANDO AGORA:
+        ,{
+          title: 'Docker & CI/CD',
+          progress: 50,
+          note: { pt: 'Containerizando APIs Node.js.', en: 'Containerizing Node.js APIs.' }
+        }
+        */
+      ],
+
+      techShelves: [
+        {
+          category: { pt: 'Linguagens', en: 'Languages' },
+          items: [
+            {
+              name: 'TypeScript',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+              usage: { pt: 'Base principal de código no QuestCard (front-end e back-end tipados).', en: 'Primary codebase at QuestCard (typed front-end & back-end).' }
+            },
+            {
+              name: 'JavaScript',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
+              usage: { pt: 'Agentes de IA (Reconecta IA), interfaces interativas WebGL/3D e automações.', en: 'AI agents (Reconecta IA), interactive 3D web interfaces, and automations.' }
+            },
+            {
+              name: 'C#',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg',
+              usage: { pt: 'Desenvolvimento orientado a objetos e APIs .NET na formação em ADS.', en: 'Object-oriented development and .NET APIs during Systems Analysis degree.' }
+            },
+            {
+              name: 'SQL',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
+              usage: { pt: 'Consultas relacionais, relatórios de ERP/PDV e banco de dados do projeto ReVest.', en: 'Relational queries, ERP/POS reporting, and database for the ReVest project.' }
+            }
+          ]
+        },
+        {
+          category: { pt: 'Mobile / Front-end', en: 'Mobile / Front-end' },
+          items: [
+            {
+              name: 'React Native',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+              usage: { pt: 'Aplicativo QuestCard publicado para Web, iOS e Android com código compartilhado.', en: 'QuestCard app shipped for Web, iOS, and Android from a shared codebase.' }
+            },
+            {
+              name: 'React',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+              usage: { pt: 'Interfaces web reativas, dashboards de desempenho e componentes reutilizáveis.', en: 'Reactive web interfaces, performance dashboards, and reusable components.' }
+            }
+          ]
+        },
+        {
+          category: { pt: 'Back-end / Dados', en: 'Back-end / Data' },
+          items: [
+            {
+              name: 'Node.js',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+              usage: { pt: 'APIs REST para simulados, autenticação, flashcards e orquestração de agentes IA.', en: 'REST APIs for mock exams, auth, flashcards, and AI agent orchestration.' }
+            },
+            {
+              name: 'MongoDB',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
+              usage: { pt: 'Modelagem e persistência de questões, usuários e histórico de estudos no QuestCard.', en: 'Data modeling and storage for questions, users, and study history at QuestCard.' }
+            }
+          ]
+        },
+        {
+          category: { pt: 'IA & Automação', en: 'AI & Automation' },
+          items: [
+            {
+              name: 'AWS Bedrock',
+              icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg',
+              usage: { pt: 'Integração de modelos generativos em produção na plataforma QuestCard.', en: 'Production generative AI model integration on the QuestCard platform.' }
+            },
+            {
+              name: 'Claude Code',
+              icon: 'https://cdn.simpleicons.org/anthropic/00f5d4',
+              usage: { pt: 'Engenharia assistida por IA, refatoração rápida e produtividade no fluxo de dev.', en: 'AI-assisted engineering, fast refactoring, and developer workflow productivity.' }
+            },
+            {
+              name: 'n8n',
+              icon: 'https://cdn.simpleicons.org/n8n/ff6d5a',
+              usage: { pt: 'Automação de fluxos, webhooks e integração entre APIs e agentes inteligentes.', en: 'Workflow automation, webhooks, and integration between APIs and smart agents.' }
+            },
+            {
+              name: 'LLMs / RAG',
+              icon: 'https://cdn.simpleicons.org/openai/38bdf8',
+              usage: { pt: 'Engenharia de prompts, busca semântica e sistemas multiagente (OpenRouter/Firecrawl).', en: 'Prompt engineering, semantic retrieval, and multi-agent systems (OpenRouter/Firecrawl).' }
+            }
+          ]
+        }
+      ]
+    };
+
+    /* =========================================================================
+       MÓDULO 1: ESTADO GLOBAL E I18N (PT / EN)
+    ========================================================================= */
+    const state = {
+      lang: 'pt',
+      theme: 'dark',
+      currentStation: 0,
+      repos: [],
+      filteredRepos: [],
+      selectedLangFilter: 'ALL',
+      searchQuery: '',
+      carouselIndex: 0
+    };
+
+    const i18n = {
+      init() {
+        try {
+          const savedLang = localStorage.getItem('mt_portfolio_lang');
+          if (savedLang === 'pt' || savedLang === 'en') {
+            state.lang = savedLang;
+          } else {
+            const browserLang = (navigator.language || 'pt').toLowerCase();
+            state.lang = browserLang.startsWith('pt') ? 'pt' : 'en';
+          }
+        } catch (e) {
+          state.lang = 'pt';
+        }
+        this.applyLanguage(false);
+      },
+
+      t(key) {
+        return CONFIG.i18n[state.lang][key] || CONFIG.i18n.pt[key] || '';
+      },
+
+      pick(obj) {
+        if (typeof obj === 'string') return obj;
+        if (!obj) return '';
+        return obj[state.lang] || obj.pt || '';
+      },
+
+      toggle() {
+        state.lang = state.lang === 'pt' ? 'en' : 'pt';
+        try {
+          localStorage.setItem('mt_portfolio_lang', state.lang);
+        } catch (e) {}
+        this.applyLanguage(true);
+      },
+
+      applyLanguage(animateFlip = true) {
+        document.documentElement.lang = state.lang === 'pt' ? 'pt-BR' : 'en';
+        const ptLbl = document.getElementById('lang-pt-label');
+        const enLbl = document.getElementById('lang-en-label');
+        if (state.lang === 'pt') {
+          ptLbl.className = 'text-[var(--accent)] font-extrabold';
+          enLbl.className = 'opacity-55';
+        } else {
+          enLbl.className = 'text-[var(--accent)] font-extrabold';
+          ptLbl.className = 'opacity-55';
+        }
+
+        // Atualiza textos estáticos da interface
+        document.getElementById('hero-greeting').textContent = this.t('heroGreeting');
+        document.getElementById('hero-name').textContent = CONFIG.personal.name;
+        document.getElementById('hero-status-badge').textContent = this.t('heroStatus');
+        document.getElementById('hero-bio').textContent = this.t('heroBio');
+        document.getElementById('hero-edu-badge').textContent = this.t('heroEdu');
+        document.getElementById('hero-lang-badge').textContent = this.t('heroLangs');
+        document.getElementById('btn-see-projects').textContent = this.t('btnProjects');
+        document.getElementById('btn-download-cv-label').textContent = this.t('btnDownloadCv');
+        document.getElementById('hero-contact-title').textContent = this.t('heroContactTitle');
+
+        document.getElementById('timeline-kicker').textContent = this.t('timelineKicker');
+        document.getElementById('timeline-title').textContent = this.t('timelineTitle');
+        document.getElementById('timeline-subtitle').textContent = this.t('timelineSubtitle');
+
+        document.getElementById('projects-kicker').textContent = this.t('projectsKicker');
+        document.getElementById('projects-title').textContent = this.t('projectsTitle');
+        document.getElementById('gh-section-title').textContent = this.t('ghTitle');
+        document.getElementById('gh-section-sub').textContent = this.t('ghSub');
+        document.getElementById('gh-search-input').placeholder = this.t('ghSearchPlaceholder');
+        document.getElementById('gh-refresh-btn').textContent = this.t('ghRefresh');
+
+        document.getElementById('learning-kicker').textContent = this.t('learningKicker');
+        document.getElementById('learning-title').textContent = this.t('learningTitle');
+        document.getElementById('learning-subtitle').textContent = this.t('learningSubtitle');
+
+        document.getElementById('tech-kicker').textContent = this.t('techKicker');
+        document.getElementById('tech-title').textContent = this.t('techTitle');
+        document.getElementById('tech-subtitle').textContent = this.t('techSubtitle');
+        document.getElementById('tech-detail-usage').textContent = this.t('techDefaultHint');
+
+        document.getElementById('footer-kicker').textContent = this.t('footerKicker');
+        document.getElementById('footer-title').textContent = this.t('footerTitle');
+        document.getElementById('footer-subtitle').textContent = this.t('footerSubtitle');
+        document.getElementById('footer-cv-label').textContent = this.t('btnDownloadCv');
+        document.getElementById('footer-updated').textContent = `${this.t('lastUpdatedLabel')} ${CONFIG.lastUpdated}`;
+
+        const isMobile = window.innerWidth < 768;
+        document.getElementById('swipe-hint-text').textContent = isMobile ? this.t('swipeHintMobile') : this.t('swipeHintDesktop');
+
+        document.querySelectorAll('.copy-email-label').forEach(el => {
+          el.textContent = this.t('copyEmailBtn');
+        });
+        document.querySelectorAll('.email-fallback-msg').forEach(el => {
+          el.textContent = this.t('copyFallbackMsg');
+        });
+
+        // Re-renderiza seções dinâmicas
+        navegacaoHorizontal.renderNavMenus();
+        timeline.render();
+        projetos.renderCaseStudies();
+        githubApi.renderChips();
+        githubApi.renderCarousel();
+        estudando.render();
+        prateleira.render();
+
+        if (animateFlip) {
+          document.querySelectorAll('h1, h2, h3, p, button, a, span').forEach(el => {
+            el.classList.remove('i18n-flip');
+            void el.offsetWidth;
+            el.classList.add('i18n-flip');
+          });
+        }
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 2: CENA 3D DE FUNDO (THREE.JS + PARALLAX + FALLBACK CSS)
+    ========================================================================= */
+    const cena3D = {
+      scene: null,
+      camera: null,
+      renderer: null,
+      particles: null,
+      gridHelper: null,
+      rafId: null,
+      isRunning: false,
+      mouseX: 0,
+      mouseY: 0,
+      stationOffsetX: 0,
+      targetStationOffsetX: 0,
+
+      init() {
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 2;
+        if (prefersReduced || lowMemory) {
+          this.enableFallback();
+          return;
+        }
+
+        try {
+          const canvas = document.getElementById('bg-canvas');
+          this.scene = new THREE.Scene();
+          this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+          this.camera.position.set(0, 2.2, 9);
+
+          this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+          // Grade em perspectiva futurista
+          this.gridHelper = new THREE.GridHelper(90, 45, 0x00f5d4, 0x0f2942);
+          this.gridHelper.position.y = -2.8;
+          this.gridHelper.material.transparent = true;
+          this.gridHelper.material.opacity = 0.28;
+          this.scene.add(this.gridHelper);
+
+          // Partículas espaciais
+          const count = window.innerWidth < 768 ? 420 : 850;
+          const geometry = new THREE.BufferGeometry();
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 65;     // X bem largo para parallax horizontal
+            positions[i + 1] = (Math.random() - 0.5) * 26; // Y
+            positions[i + 2] = (Math.random() - 0.5) * 45; // Z
+          }
+          geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+          const material = new THREE.PointsMaterial({
+            color: 0x00f5d4,
+            size: 0.14,
+            transparent: true,
+            opacity: 0.75
+          });
+
+          this.particles = new THREE.Points(geometry, material);
+          this.scene.add(this.particles);
+
+          this.bindEvents();
+          this.start();
+        } catch (err) {
+          this.enableFallback();
+        }
+      },
+
+      enableFallback() {
+        document.getElementById('bg-canvas').style.display = 'none';
+        document.getElementById('css-3d-fallback').style.display = 'block';
+      },
+
+      setHorizontalProgress(progressFloat) {
+        // progressFloat varia de 0 a 5 (número de estações)
+        this.targetStationOffsetX = (progressFloat - 2.5) * 3.8;
+      },
+
+      updateThemeColors(isLight) {
+        if (!this.particles || !this.gridHelper) return;
+        this.particles.material.color.setHex(isLight ? 0x0284c7 : 0x00f5d4);
+        this.gridHelper.material.opacity = isLight ? 0.14 : 0.28;
+      },
+
+      bindEvents() {
+        window.addEventListener('mousemove', (e) => {
+          this.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          this.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        }, { passive: true });
+
+        window.addEventListener('deviceorientation', (e) => {
+          if (e.gamma !== null && e.beta !== null) {
+            this.mouseX = Math.max(-1, Math.min(1, e.gamma / 35));
+            this.mouseY = Math.max(-1, Math.min(1, (e.beta - 45) / 35));
+          }
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+          if (!this.renderer || !this.camera) return;
+          this.camera.aspect = window.innerWidth / window.innerHeight;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        });
+
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            this.stop();
+          } else {
+            this.start();
+          }
+        });
+      },
+
+      start() {
+        if (this.isRunning || !this.renderer) return;
+        this.isRunning = true;
+        this.animate();
+      },
+
+      stop() {
+        this.isRunning = false;
+        if (this.rafId) cancelAnimationFrame(this.rafId);
+      },
+
+      animate() {
+        if (!this.isRunning) return;
+        this.rafId = requestAnimationFrame(() => this.animate());
+
+        this.stationOffsetX += (this.targetStationOffsetX - this.stationOffsetX) * 0.08;
+
+        if (this.particles) {
+          this.particles.rotation.y += 0.0008;
+          this.particles.rotation.x += 0.0003;
+        }
+
+        if (this.gridHelper) {
+          this.gridHelper.position.z = (performance.now() * 0.0015) % 2;
+        }
+
+        this.camera.position.x += ((this.stationOffsetX + this.mouseX * 1.1) - this.camera.position.x) * 0.07;
+        this.camera.position.y += ((2.2 - this.mouseY * 0.7) - this.camera.position.y) * 0.07;
+        this.camera.lookAt(this.stationOffsetX, 0, -4);
+
+        this.renderer.render(this.scene, this.camera);
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 3: NAVEGAÇÃO HORIZONTAL 3D (POINTER EVENTS + PHYSICS + HASH)
+    ========================================================================= */
+    const navegacaoHorizontal = {
+      viewport: null,
+      slides: [],
+      total: 6,
+      currentIndex: 0,
+      dragOffsetPx: 0,
+      isDragging: false,
+      isHorizontalGesture: null,
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      lastX: 0,
+      lastTime: 0,
+      velocityX: 0,
+      wheelLock: false,
+      animFrame: null,
+
+      init() {
+        this.viewport = document.getElementById('horizontal-viewport');
+        this.slides = Array.from(document.querySelectorAll('.station-slide'));
+        this.total = this.slides.length;
+
+        this.renderNavMenus();
+        this.initFirstVisitHint();
+        this.bindEvents();
+
+        // Verifica hash inicial da URL
+        const initialIdx = this.getIndexFromHash(window.location.hash);
+        this.goTo(initialIdx, false, false);
+      },
+
+      getIndexFromHash(hash) {
+        if (!hash) return 0;
+        const clean = hash.toLowerCase();
+        const ptIdx = CONFIG.i18n.pt.stationHashes.indexOf(clean);
+        if (ptIdx !== -1) return ptIdx;
+        const enIdx = CONFIG.i18n.en.stationHashes.indexOf(clean);
+        if (enIdx !== -1) return enIdx;
+        return 0;
+      },
+
+      renderNavMenus() {
+        const labels = i18n.t('nav');
+        const desktopNav = document.getElementById('desktop-nav-links');
+        const mobileNav = document.getElementById('mobile-nav-links');
+        const dotsWrap = document.getElementById('progress-dots');
+
+        const mobileIcons = ['👤', '⏳', '🚀', '📚', '⚡', '✉️'];
+
+        desktopNav.innerHTML = labels.map((label, idx) => `
+          <button type="button" data-nav-index="${idx}"
+            class="nav-pill px-3 py-1.5 rounded-xl font-mono text-xs font-semibold transition ${idx === this.currentIndex ? 'bg-[var(--accent)] text-slate-950 shadow-[0_0_12px_var(--accent-glow)]' : 'opacity-75 hover:opacity-100'}">
+            ${label}
+          </button>
+        `).join('');
+
+        mobileNav.innerHTML = labels.map((label, idx) => `
+          <button type="button" data-nav-index="${idx}" aria-label="${label}"
+            class="nav-pill flex flex-col items-center justify-center px-2 py-1 rounded-xl text-[10px] font-mono transition ${idx === this.currentIndex ? 'text-[var(--accent)] font-bold scale-105' : 'opacity-65'}">
+            <span class="text-sm leading-none mb-0.5">${mobileIcons[idx]}</span>
+            <span class="truncate max-w-[54px]">${label}</span>
+          </button>
+        `).join('');
+
+        dotsWrap.innerHTML = labels.map((label, idx) => `
+          <button type="button" role="tab" aria-selected="${idx === this.currentIndex}" aria-label="${label}" data-nav-index="${idx}"
+            class="h-2 rounded-full transition-all duration-300 ${idx === this.currentIndex ? 'w-6 bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]' : 'w-2 bg-slate-500/50 hover:bg-slate-400'}">
+          </button>
+        `).join('');
+
+        document.querySelectorAll('[data-nav-index]').forEach(btn => {
+          btn.onclick = () => {
+            const targetIdx = Number(btn.getAttribute('data-nav-index'));
+            this.goTo(targetIdx, true, true);
+          };
+        });
+
+        const prevBtn = document.getElementById('nav-prev-btn');
+        const nextBtn = document.getElementById('nav-next-btn');
+        if (prevBtn) prevBtn.disabled = this.currentIndex === 0;
+        if (nextBtn) nextBtn.disabled = this.currentIndex === this.total - 1;
+      },
+
+      initFirstVisitHint() {
+        try {
+          if (localStorage.getItem('mt_swipe_hint_seen') === '1') return;
+        } catch (e) {}
+
+        const hintEl = document.getElementById('swipe-hint');
+        const iconEl = document.getElementById('swipe-hint-icon');
+        const isMobile = window.innerWidth < 768;
+        iconEl.textContent = isMobile ? '👆' : '🖱️';
+        hintEl.classList.remove('hidden');
+      },
+
+      dismissFirstVisitHint() {
+        const hintEl = document.getElementById('swipe-hint');
+        if (!hintEl.classList.contains('hidden')) {
+          hintEl.classList.add('hidden');
+          try {
+            localStorage.setItem('mt_swipe_hint_seen', '1');
+          } catch (e) {}
+        }
+      },
+
+      applyTransforms(offsetPx) {
+        const width = window.innerWidth || 1;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const maxAngle = CONFIG.horizontalNav.maxRotateY;
+        const minScale = CONFIG.horizontalNav.minScale;
+
+        // Atualiza parallax na cena Three.js
+        const progressFloat = this.currentIndex - (offsetPx / width);
+        cena3D.setHorizontalProgress(progressFloat);
+
+        this.slides.forEach((slide, idx) => {
+          const relIndex = idx - this.currentIndex;
+          const slideX = relIndex * width + offsetPx;
+          const progress = slideX / width; // -1 (esquerda), 0 (centro), +1 (direita)
+
+          if (Math.abs(progress) > 1.5) {
+            slide.style.visibility = 'hidden';
+            slide.style.transform = `translate3d(${slideX}px, 0, 0)`;
+            return;
+          }
+
+          slide.style.visibility = 'visible';
+
+          if (reducedMotion) {
+            slide.style.transform = `translate3d(${slideX}px, 0, 0)`;
+            slide.style.opacity = '1';
+            slide.style.filter = 'none';
+          } else {
+            const clamped = Math.max(-1, Math.min(1, progress));
+            const rotateY = -clamped * maxAngle;
+            const scale = 1 - Math.abs(clamped) * (1 - minScale);
+            const brightness = 1 - Math.abs(clamped) * 0.35;
+
+            slide.style.transform = `translate3d(${slideX}px, 0, 0) rotateY(${rotateY}deg) scale(${scale})`;
+            slide.style.filter = `brightness(${brightness})`;
+          }
+        });
+      },
+
+      animateOffsetTo(targetOffsetPx, onComplete) {
+        if (this.animFrame) cancelAnimationFrame(this.animFrame);
+
+        const startOffset = this.dragOffsetPx;
+        const distance = targetOffsetPx - startOffset;
+        const duration = CONFIG.horizontalNav.transitionDuration;
+        const startTime = performance.now();
+
+        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+        const step = (now) => {
+          const elapsed = now - startTime;
+          const t = Math.min(1, elapsed / duration);
+          const eased = easeOutCubic(t);
+
+          this.dragOffsetPx = startOffset + distance * eased;
+          this.applyTransforms(this.dragOffsetPx);
+
+          if (t < 1) {
+            this.animFrame = requestAnimationFrame(step);
+          } else {
+            this.dragOffsetPx = 0;
+            if (onComplete) onComplete();
+          }
+        };
+
+        this.animFrame = requestAnimationFrame(step);
+      },
+
+      goTo(targetIndex, animate = true, updateHash = true, focusHeading = false) {
+        const clampedIndex = Math.max(0, Math.min(this.total - 1, targetIndex));
+        const width = window.innerWidth || 1;
+        const diff = clampedIndex - this.currentIndex;
+
+        if (clampedIndex !== 0) {
+          this.dismissFirstVisitHint();
+        }
+
+        if (!animate || diff === 0) {
+          this.currentIndex = clampedIndex;
+          state.currentStation = clampedIndex;
+          this.dragOffsetPx = 0;
+          this.applyTransforms(0);
+          this.syncAccessibilityAndHash(updateHash, focusHeading);
+          return;
+        }
+
+        // Anima até o deslocamento correspondente ao slide alvo
+        const targetOffset = -diff * width;
+        this.animateOffsetTo(targetOffset, () => {
+          this.currentIndex = clampedIndex;
+          state.currentStation = clampedIndex;
+          this.dragOffsetPx = 0;
+          this.applyTransforms(0);
+          this.syncAccessibilityAndHash(updateHash, focusHeading);
+        });
+      },
+
+      syncAccessibilityAndHash(updateHash, focusHeading) {
+        this.slides.forEach((slide, idx) => {
+          const isActive = idx === this.currentIndex;
+          if (isActive) {
+            slide.classList.add('is-active');
+            slide.removeAttribute('inert');
+            slide.setAttribute('aria-hidden', 'false');
+            if (focusHeading) {
+              const heading = slide.querySelector('h1, h2');
+              if (heading) heading.focus({ preventScroll: true });
+            }
+          } else {
+            slide.classList.remove('is-active');
+            slide.setAttribute('inert', '');
+            slide.setAttribute('aria-hidden', 'true');
+          }
+        });
+
+        this.renderNavMenus();
+
+        if (updateHash) {
+          const hash = CONFIG.i18n[state.lang].stationHashes[this.currentIndex];
+          if (hash && window.location.hash !== hash) {
+            history.pushState({ station: this.currentIndex }, '', hash);
+          }
+        }
+      },
+
+      shouldIgnoreSwipe(target) {
+        if (!target) return false;
+        return Boolean(target.closest('[data-no-swipe], button, a, input, textarea, select, [role="button"]'));
+      },
+
+      bindEvents() {
+        // Pointer Events (Mouse Drag & Touch Swipe)
+        this.viewport.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0 && e.pointerType === 'mouse') return;
+          if (this.shouldIgnoreSwipe(e.target)) return;
+
+          if (this.animFrame) cancelAnimationFrame(this.animFrame);
+          this.isDragging = true;
+          this.isHorizontalGesture = null;
+          this.pointerId = e.pointerId;
+          this.startX = e.clientX;
+          this.startY = e.clientY;
+          this.lastX = e.clientX;
+          this.lastTime = performance.now();
+          this.velocityX = 0;
+        });
+
+        this.viewport.addEventListener('pointermove', (e) => {
+          if (!this.isDragging || e.pointerId !== this.pointerId) return;
+
+          const dx = e.clientX - this.startX;
+          const dy = e.clientY - this.startY;
+
+          if (this.isHorizontalGesture === null) {
+            if (Math.abs(dx) < CONFIG.horizontalNav.tapTolerancePx && Math.abs(dy) < CONFIG.horizontalNav.tapTolerancePx) {
+              return;
+            }
+            this.isHorizontalGesture = Math.abs(dx) > Math.abs(dy);
+            if (this.isHorizontalGesture) {
+              try {
+                this.viewport.setPointerCapture(e.pointerId);
+              } catch (err) {}
+            } else {
+              // Gesto vertical: libera para rolagem interna natural
+              this.isDragging = false;
+              return;
+            }
+          }
+
+          if (!this.isHorizontalGesture) return;
+
+          const now = performance.now();
+          const dt = Math.max(1, now - this.lastTime);
+          this.velocityX = (e.clientX - this.lastX) / dt;
+          this.lastX = e.clientX;
+          this.lastTime = now;
+
+          // Resistência elástica (rubber band) nas extremidades
+          let effectiveDx = dx;
+          if ((this.currentIndex === 0 && dx > 0) || (this.currentIndex === this.total - 1 && dx < 0)) {
+            effectiveDx = dx * 0.28;
+          }
+
+          this.dragOffsetPx = effectiveDx;
+          this.applyTransforms(this.dragOffsetPx);
+        });
+
+        const endPointerGesture = (e) => {
+          if (!this.isDragging || e.pointerId !== this.pointerId) return;
+          this.isDragging = false;
+
+          try {
+            if (this.viewport.hasPointerCapture(e.pointerId)) {
+              this.viewport.releasePointerCapture(e.pointerId);
+            }
+          } catch (err) {}
+
+          if (!this.isHorizontalGesture) {
+            this.dragOffsetPx = 0;
+            return;
+          }
+
+          const width = window.innerWidth || 1;
+          const ratio = Math.abs(this.dragOffsetPx) / width;
+          const fastSwipe = Math.abs(this.velocityX) > CONFIG.horizontalNav.velocityThreshold;
+          const passedThreshold = ratio > CONFIG.horizontalNav.dragThresholdRatio;
+
+          if ((passedThreshold || fastSwipe) && this.dragOffsetPx < 0 && this.currentIndex < this.total - 1) {
+            this.goTo(this.currentIndex + 1, true, true, true);
+          } else if ((passedThreshold || fastSwipe) && this.dragOffsetPx > 0 && this.currentIndex > 0) {
+            this.goTo(this.currentIndex - 1, true, true, true);
+          } else {
+            // Volta com efeito mola para a tela atual
+            this.animateOffsetTo(0, () => {
+              this.applyTransforms(0);
+            });
+          }
+        };
+
+        this.viewport.addEventListener('pointerup', endPointerGesture);
+        this.viewport.addEventListener('pointercancel', endPointerGesture);
+
+        // Roda do mouse / Trackpad
+        window.addEventListener('wheel', (e) => {
+          if (this.wheelLock) return;
+          if (!document.getElementById('lightbox-modal').classList.contains('hidden')) return;
+
+          const activeSlide = this.slides[this.currentIndex];
+          const canScrollVertically = activeSlide.scrollHeight > activeSlide.clientHeight + 4;
+          const dominantDelta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+
+          // Se houver rolagem vertical interna na tela e o movimento for vertical, só troca ao chegar no limite
+          if (canScrollVertically && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
+            const atTop = activeSlide.scrollTop <= 2;
+            const atBottom = activeSlide.scrollTop + activeSlide.clientHeight >= activeSlide.scrollHeight - 4;
+            if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+              return;
+            }
+          }
+
+          if (Math.abs(dominantDelta) < 28) return;
+
+          this.wheelLock = true;
+          setTimeout(() => { this.wheelLock = false; }, 650);
+
+          if (dominantDelta > 0 && this.currentIndex < this.total - 1) {
+            this.goTo(this.currentIndex + 1, true, true, true);
+          } else if (dominantDelta < 0 && this.currentIndex > 0) {
+            this.goTo(this.currentIndex - 1, true, true, true);
+          }
+        }, { passive: true });
+
+        // Teclado (Setas, Home, End)
+        window.addEventListener('keydown', (e) => {
+          if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+          if (!document.getElementById('lightbox-modal').classList.contains('hidden')) {
+            if (e.key === 'Escape') projetos.closeLightbox();
+            return;
+          }
+
+          if (e.key === 'ArrowRight') {
+            this.goTo(this.currentIndex + 1, true, true, true);
+          } else if (e.key === 'ArrowLeft') {
+            this.goTo(this.currentIndex - 1, true, true, true);
+          } else if (e.key === 'Home') {
+            this.goTo(0, true, true, true);
+          } else if (e.key === 'End') {
+            this.goTo(this.total - 1, true, true, true);
+          }
+        });
+
+        // Botões laterais ‹ ›
+        document.getElementById('nav-prev-btn').addEventListener('click', () => {
+          this.goTo(this.currentIndex - 1, true, true, true);
+        });
+        document.getElementById('nav-next-btn').addEventListener('click', () => {
+          this.goTo(this.currentIndex + 1, true, true, true);
+        });
+
+        // Botão Voltar/Avançar do Navegador
+        window.addEventListener('popstate', () => {
+          const idx = this.getIndexFromHash(window.location.hash);
+          this.goTo(idx, true, false, true);
+        });
+
+        // Redimensionamento da janela
+        window.addEventListener('resize', () => {
+          this.applyTransforms(0);
+        });
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 4: EFEITO TILT 3D NOS CARDS + DIGITAÇÃO NO HERO
+    ========================================================================= */
+    const efeitosUI = {
+      initTilt() {
+        document.addEventListener('mousemove', (e) => {
+          const card = e.target.closest('[data-tilt]');
+          if (!card) return;
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = ((y - centerY) / centerY) * -6;
+          const rotateY = ((x - centerX) / centerX) * 6;
+
+          card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+
+          const glare = card.querySelector('.tilt-glare');
+          if (glare) {
+            glare.style.opacity = '1';
+            glare.style.background = `radial-gradient(circle at ${(x / rect.width) * 100}% ${(y / rect.height) * 100}%, rgba(255,255,255,0.18), transparent 65%)`;
+          }
+        }, { passive: true });
+
+        document.addEventListener('mouseout', (e) => {
+          const card = e.target.closest('[data-tilt]');
+          if (!card) return;
+          if (!card.contains(e.relatedTarget)) {
+            card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+            const glare = card.querySelector('.tilt-glare');
+            if (glare) glare.style.opacity = '0';
+          }
+        }, { passive: true });
+      },
+
+      initTypewriter() {
+        const el = document.getElementById('typewriter-text');
+        const words = CONFIG.personal.typingWords;
+        let wordIdx = 0;
+        let charIdx = 0;
+        let isDeleting = false;
+
+        const tick = () => {
+          const currentWord = words[wordIdx];
+          if (isDeleting) {
+            charIdx--;
+          } else {
+            charIdx++;
+          }
+
+          el.textContent = currentWord.substring(0, charIdx);
+
+          let delay = isDeleting ? 55 : 105;
+          if (!isDeleting && charIdx === currentWord.length) {
+            delay = 1700;
+            isDeleting = true;
+          } else if (isDeleting && charIdx === 0) {
+            isDeleting = false;
+            wordIdx = (wordIdx + 1) % words.length;
+            delay = 350;
+          }
+
+          setTimeout(tick, delay);
+        };
+
+        tick();
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 5: LINHA DO TEMPO DA EXPERIÊNCIA
+    ========================================================================= */
+    const timeline = {
+      render() {
+        const container = document.getElementById('timeline-container');
+        container.innerHTML = CONFIG.timeline.map((item, index) => `
+          <article class="glass-card tilt-card rounded-2xl p-5 sm:p-6 flex flex-col justify-between stagger-item" style="transition-delay: ${index * 110}ms;" data-tilt>
+            <div class="tilt-glare"></div>
+            <div class="tilt-inner-depth space-y-4">
+              <div>
+                <span class="inline-block font-mono text-xs px-3 py-1 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] font-bold">
+                  ${i18n.pick(item.period)}
+                </span>
+                <h3 class="font-mono text-lg sm:text-xl font-bold mt-3">${i18n.pick(item.role)}</h3>
+                <p class="text-xs sm:text-sm text-emerald-400 font-medium mt-1.5">${i18n.pick(item.highlight)}</p>
+              </div>
+
+              <div>
+                <h4 class="font-mono text-xs uppercase tracking-wider opacity-70 mb-2">${i18n.t('achievementsLabel')}</h4>
+                <ul class="space-y-1.5 text-xs sm:text-sm opacity-90 list-disc pl-4">
+                  ${i18n.pick(item.achievements).map(ach => `<li>${ach}</li>`).join('')}
+                </ul>
+              </div>
+
+              <div class="pt-2 border-t border-slate-700/40">
+                <span class="block font-mono text-[11px] uppercase tracking-wider opacity-65 mb-2">${i18n.t('carriedSkillsLabel')}</span>
+                <div class="flex flex-wrap gap-1.5">
+                  ${i18n.pick(item.carriedSkills).map(skill => `
+                    <span class="font-mono text-[11px] px-2.5 py-0.5 rounded-md bg-slate-800/70 border border-slate-600/40">${skill}</span>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </article>
+        `).join('');
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 6: ESTUDOS DE CASO E LIGHTBOX
+    ========================================================================= */
+    const projetos = {
+      makePlaceholderSvg(title) {
+        const encoded = encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#091122"/>
+                <stop offset="100%" stop-color="#112240"/>
+              </linearGradient>
+            </defs>
+            <rect width="800" height="450" fill="url(#g)"/>
+            <rect x="20" y="20" width="760" height="410" rx="18" fill="none" stroke="#00f5d4" stroke-opacity="0.35" stroke-width="2"/>
+            <text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="34" font-weight="bold" fill="#00f5d4">${title}</text>
+            <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#94a3b8">Preview Screenshot</text>
+          </svg>
+        `);
+        return `data:image/svg+xml,${encoded}`;
+      },
+
+      renderCaseStudies() {
+        const container = document.getElementById('case-studies-container');
+        container.innerHTML = CONFIG.caseStudies.map(cs => {
+          const placeholder = this.makePlaceholderSvg(cs.title);
+          return `
+            <article class="glass-card rounded-3xl p-5 sm:p-7 border-[var(--accent)]/35 space-y-5">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-700/40 pb-4">
+                <div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-[var(--accent)] text-slate-950">CASE STUDY</span>
+                    <h3 class="font-mono text-xl sm:text-2xl font-extrabold">${cs.title}</h3>
+                  </div>
+                  <p class="text-xs sm:text-sm opacity-80 mt-1">${i18n.pick(cs.subtitle)}</p>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  ${cs.stack.map(tech => `<span class="font-mono text-xs px-2.5 py-1 rounded-lg glass-card border-[var(--accent)]/30">${tech}</span>`).join('')}
+                </div>
+              </div>
+
+              <p class="font-mono text-xs text-[var(--accent)]">
+                <strong>${i18n.t('roleLabel')}:</strong> ${i18n.pick(cs.role)}
+              </p>
+
+              <!-- Fluxo Problema -> O que eu fiz -> Resultado -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="font-mono text-xs font-bold text-rose-400 uppercase">01 · ${i18n.t('problemLabel')}</span>
+                  <p class="text-xs sm:text-sm mt-1.5 leading-relaxed opacity-90">${i18n.pick(cs.problem)}</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="font-mono text-xs font-bold text-sky-400 uppercase">02 · ${i18n.t('solutionLabel')}</span>
+                  <p class="text-xs sm:text-sm mt-1.5 leading-relaxed opacity-90">${i18n.pick(cs.solution)}</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-700/40">
+                  <span class="font-mono text-xs font-bold text-emerald-400 uppercase">03 · ${i18n.t('resultLabel')}</span>
+                  <p class="text-xs sm:text-sm mt-1.5 leading-relaxed opacity-90">${i18n.pick(cs.result)}</p>
+                </div>
+              </div>
+
+              <!-- Galeria de Telas (Lightbox) -->
+              ${cs.gallery && cs.gallery.length ? `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1" data-no-swipe>
+                  ${cs.gallery.map(img => `
+                    <button type="button" class="group relative rounded-2xl overflow-hidden border border-slate-700/50 hover:border-[var(--accent)] transition text-left"
+                      data-lightbox-src="${img.src}" data-lightbox-fallback="${placeholder}" data-lightbox-caption="${i18n.pick(img.caption)}">
+                      <img src="${img.src}" alt="${i18n.pick(img.caption)}" onerror="this.onerror=null;this.src='${placeholder}';"
+                        class="w-full h-44 object-cover group-hover:scale-105 transition duration-300" />
+                      <div class="p-2.5 bg-slate-950/75 font-mono text-xs flex items-center justify-between">
+                        <span>${i18n.pick(img.caption)}</span>
+                        <span class="text-[var(--accent)]">🔍</span>
+                      </div>
+                    </button>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <!-- Links -->
+              ${(cs.links.code || cs.links.live) ? `
+                <div class="flex flex-wrap gap-3 pt-1">
+                  ${cs.links.code ? `<a href="${cs.links.code}" target="_blank" rel="noopener" class="glass-card px-4 py-2 rounded-xl font-mono text-xs font-bold hover:border-[var(--accent)] transition">${i18n.t('viewCode')} ↗</a>` : ''}
+                  ${cs.links.live ? `<a href="${cs.links.live}" target="_blank" rel="noopener" class="px-4 py-2 rounded-xl font-mono text-xs font-bold bg-[var(--accent)] text-slate-950 hover:brightness-110 transition">${i18n.t('viewLive')} ↗</a>` : ''}
+                </div>
+              ` : ''}
+            </article>
+          `;
+        }).join('');
+
+        // Eventos de abertura do Lightbox
+        container.querySelectorAll('[data-lightbox-src]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const imgEl = btn.querySelector('img');
+            this.openLightbox(imgEl.src, btn.getAttribute('data-lightbox-caption'));
+          });
+        });
+      },
+
+      openLightbox(src, caption) {
+        const modal = document.getElementById('lightbox-modal');
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox-caption').textContent = caption;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      closeLightbox() {
+        const modal = document.getElementById('lightbox-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 7: API DO GITHUB AO VIVO + CACHE 30 MIN + CARROSSEL 3D
+    ========================================================================= */
+    const githubApi = {
+      CACHE_KEY: 'mt_github_repos_cache_v1',
+      CACHE_TTL: 30 * 60 * 1000,
+      isFallback: false,
+
+      async init() {
+        document.getElementById('gh-search-input').addEventListener('input', (e) => {
+          state.searchQuery = e.target.value.trim().toLowerCase();
+          state.carouselIndex = 0;
+          this.applyFilters();
+        });
+
+        document.getElementById('gh-refresh-btn').addEventListener('click', () => {
+          this.loadRepos(true);
+        });
+
+        document.getElementById('gh-prev-btn').addEventListener('click', () => {
+          if (state.filteredRepos.length === 0) return;
+          state.carouselIndex = (state.carouselIndex - 1 + state.filteredRepos.length) % state.filteredRepos.length;
+          this.renderCarousel();
+        });
+
+        document.getElementById('gh-next-btn').addEventListener('click', () => {
+          if (state.filteredRepos.length === 0) return;
+          state.carouselIndex = (state.carouselIndex + 1) % state.filteredRepos.length;
+          this.renderCarousel();
+        });
+
+        await this.loadRepos(false);
+      },
+
+      renderSkeleton() {
+        const track = document.getElementById('gh-carousel-track');
+        track.innerHTML = [1, 2, 3].map(() => `
+          <div class="glass-card rounded-2xl p-4 h-72 animate-pulse flex flex-col justify-between">
+            <div class="w-full h-32 bg-slate-700/40 rounded-xl"></div>
+            <div class="h-4 bg-slate-700/40 rounded w-2/3"></div>
+            <div class="h-3 bg-slate-700/40 rounded w-full"></div>
+            <div class="h-8 bg-slate-700/40 rounded w-1/2"></div>
+          </div>
+        `).join('');
+      },
+
+      async loadRepos(forceRefresh = false) {
+        this.renderSkeleton();
+        this.isFallback = false;
+
+        if (!forceRefresh) {
+          try {
+            const cachedRaw = localStorage.getItem(this.CACHE_KEY);
+            if (cachedRaw) {
+              const cached = JSON.parse(cachedRaw);
+              if (Date.now() - cached.timestamp < this.CACHE_TTL && Array.isArray(cached.data)) {
+                state.repos = cached.data;
+                this.renderChips();
+                this.applyFilters();
+                return;
+              }
+            }
+          } catch (e) {}
+        }
+
+        try {
+          const res = await fetch(`https://api.github.com/users/${CONFIG.personal.githubUser}/repos?sort=updated&per_page=30`);
+          if (!res.ok) throw new Error('GitHub API Error');
+          const data = await res.json();
+
+          const cleaned = data
+            .filter(r => !r.fork && !r.archived)
+            .sort((a, b) => {
+              const aFeat = (a.topics || []).includes('portfolio') ? 1 : 0;
+              const bFeat = (b.topics || []).includes('portfolio') ? 1 : 0;
+              if (bFeat !== aFeat) return bFeat - aFeat;
+              return new Date(b.updated_at) - new Date(a.updated_at);
+            });
+
+          state.repos = cleaned;
+          try {
+            localStorage.setItem(this.CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: cleaned }));
+          } catch (e) {}
+        } catch (err) {
+          this.isFallback = true;
+          state.repos = CONFIG.fallbackRepos;
+        }
+
+        this.renderChips();
+        this.applyFilters();
+      },
+
+      renderChips() {
+        const chipsContainer = document.getElementById('gh-lang-chips');
+        const langs = ['ALL', ...new Set(state.repos.map(r => r.language).filter(Boolean))];
+
+        chipsContainer.innerHTML = langs.map(lang => {
+          const active = state.selectedLangFilter === lang;
+          const label = lang === 'ALL' ? i18n.t('ghAllFilter') : lang;
+          return `
+            <button type="button" data-lang-chip="${lang}"
+              class="px-3 py-1 rounded-full font-mono text-xs transition ${active ? 'bg-[var(--accent)] text-slate-950 font-bold' : 'glass-card opacity-80 hover:opacity-100'}">
+              ${label}
+            </button>
+          `;
+        }).join('');
+
+        chipsContainer.querySelectorAll('[data-lang-chip]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.selectedLangFilter = btn.getAttribute('data-lang-chip');
+            state.carouselIndex = 0;
+            this.renderChips();
+            this.applyFilters();
+          });
+        });
+      },
+
+      applyFilters() {
+        state.filteredRepos = state.repos.filter(repo => {
+          const matchLang = state.selectedLangFilter === 'ALL' || repo.language === state.selectedLangFilter;
+          const matchSearch = !state.searchQuery ||
+            repo.name.toLowerCase().includes(state.searchQuery) ||
+            (repo.description && repo.description.toLowerCase().includes(state.searchQuery));
+          return matchLang && matchSearch;
+        });
+
+        this.renderCarousel();
+      },
+
+      renderCarousel() {
+        const track = document.getElementById('gh-carousel-track');
+        const indicator = document.getElementById('gh-carousel-indicator');
+
+        if (state.filteredRepos.length === 0) {
+          track.innerHTML = `<div class="col-span-3 glass-card rounded-2xl p-6 text-center font-mono text-sm opacity-75">Nenhum repositório encontrado.</div>`;
+          indicator.textContent = '0 / 0';
+          return;
+        }
+
+        const total = state.filteredRepos.length;
+        const visibleCount = Math.min(3, total);
+        const visibleRepos = [];
+        for (let i = 0; i < visibleCount; i++) {
+          visibleRepos.push(state.filteredRepos[(state.carouselIndex + i) % total]);
+        }
+
+        indicator.textContent = `${state.carouselIndex + 1} / ${total}`;
+
+        const bannerHtml = this.isFallback
+          ? `<div class="col-span-full glass-card rounded-xl px-4 py-2 font-mono text-xs text-amber-300 border-amber-400/40">${i18n.t('ghFallbackBanner')}</div>`
+          : '';
+
+        track.innerHTML = bannerHtml + visibleRepos.map((repo, idx) => {
+          const isFeatured = (repo.topics || []).includes('portfolio');
+          const branch = repo.default_branch || 'main';
+          const rawPreview = `https://raw.githubusercontent.com/${CONFIG.personal.githubUser}/${repo.name}/${branch}/preview.png`;
+          const ogFallback = `https://opengraph.githubassets.com/1/${CONFIG.personal.githubUser}/${repo.name}`;
+          const updatedDate = new Date(repo.updated_at).toLocaleDateString(state.lang === 'pt' ? 'pt-BR' : 'en-US');
+
+          return `
+            <div class="repo-flip-container h-80 cursor-pointer" tabindex="0" role="button" aria-label="${repo.name} - clique para girar">
+              <div class="repo-flip-inner">
+                <!-- FRENTE DO CARD -->
+                <div class="repo-face glass-card rounded-2xl p-4 flex flex-col justify-between border ${idx === 0 ? 'border-[var(--accent)]/60' : 'border-slate-700/40'}">
+                  <div>
+                    <div class="relative h-36 rounded-xl overflow-hidden bg-slate-900 mb-3">
+                      <img src="${rawPreview}" alt="Prévia de ${repo.name}" onerror="this.onerror=null;this.src='${ogFallback}';" class="w-full h-full object-cover" />
+                      ${isFeatured ? `<span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-mono text-[11px] font-bold shadow">${i18n.t('ghFeaturedBadge')}</span>` : ''}
+                    </div>
+                    <h4 class="font-mono font-bold text-base truncate">${repo.name}</h4>
+                    <p class="text-xs opacity-75 line-clamp-2 mt-1">${repo.description || '—'}</p>
+                  </div>
+
+                  <div class="flex items-center justify-between text-xs font-mono pt-2 border-t border-slate-700/40">
+                    <span class="text-[var(--accent)]">${repo.language || 'Code'}</span>
+                    <span>★ ${repo.stargazers_count || 0} · ↻ Flip</span>
+                  </div>
+                </div>
+
+                <!-- VERSO DO CARD -->
+                <div class="repo-face repo-back glass-card rounded-2xl p-5 flex flex-col justify-between border border-[var(--accent)]">
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                      <h4 class="font-mono font-bold text-base text-[var(--accent)] truncate">${repo.name}</h4>
+                      <span class="font-mono text-xs">★ ${repo.stargazers_count || 0}</span>
+                    </div>
+                    <p class="text-xs sm:text-sm leading-relaxed opacity-90 overflow-y-auto max-h-36">${repo.description || 'Repositório no GitHub.'}</p>
+                    <p class="font-mono text-[11px] opacity-65 pt-1">${i18n.t('ghUpdatedAt')}: ${updatedDate}</p>
+                  </div>
+
+                  <div class="flex items-center gap-2 pt-3 border-t border-slate-700/40">
+                    <a href="${repo.html_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="flex-1 text-center py-2 rounded-xl bg-[var(--accent)] text-slate-950 font-mono text-xs font-bold hover:brightness-110 transition">
+                      ${i18n.t('viewCode')} ↗
+                    </a>
+                    ${repo.homepage ? `
+                      <a href="${repo.homepage}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="flex-1 text-center py-2 rounded-xl glass-card font-mono text-xs font-bold hover:border-[var(--accent)] transition">
+                        ${i18n.t('viewLive')} ↗
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        track.querySelectorAll('.repo-flip-container').forEach(card => {
+          card.addEventListener('click', () => card.classList.toggle('flipped'));
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              card.classList.toggle('flipped');
+            }
+          });
+        });
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 8: ESTUDANDO AGORA (CARDS FLUTUANTES)
+    ========================================================================= */
+    const estudando = {
+      render() {
+        const grid = document.getElementById('learning-grid');
+        grid.innerHTML = CONFIG.learning.map((item, idx) => `
+          <article class="glass-card tilt-card levitate-card rounded-2xl p-5 flex flex-col justify-between space-y-4 stagger-item"
+            style="animation-delay: ${idx * 0.45}s; transition-delay: ${idx * 100}ms;" data-tilt>
+            <div class="tilt-glare"></div>
+            <div class="tilt-inner-depth space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-300 font-mono text-[11px] font-bold">
+                  ${i18n.t('inProgressBadge')}
+                </span>
+                <span class="font-mono text-xs font-bold text-[var(--accent)]">${item.progress}%</span>
+              </div>
+
+              <h3 class="font-mono text-lg font-bold">${i18n.pick(item.title)}</h3>
+              <p class="text-xs sm:text-sm opacity-85 leading-relaxed">${i18n.pick(item.note)}</p>
+            </div>
+
+            <div class="tilt-inner-depth w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-sky-400 transition-all duration-700" style="width: ${item.progress}%;"></div>
+            </div>
+          </article>
+        `).join('');
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 9: PRATELEIRA DE TECNOLOGIAS 3D
+    ========================================================================= */
+    const prateleira = {
+      render() {
+        const container = document.getElementById('tech-shelves-container');
+        container.innerHTML = CONFIG.techShelves.map((shelf, sIdx) => `
+          <div class="shelf-board glass-card rounded-2xl p-5 space-y-4 stagger-item" style="transition-delay: ${sIdx * 90}ms;">
+            <div class="flex items-center justify-between border-b border-slate-700/50 pb-2">
+              <h3 class="font-mono text-sm font-bold uppercase tracking-wider text-[var(--accent)]">${i18n.pick(shelf.category)}</h3>
+              <span class="font-mono text-[11px] opacity-50">0${sIdx + 1}</span>
+            </div>
+
+            <!-- Blocos 3D sobre a prateleira -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              ${shelf.items.map(tech => `
+                <button type="button"
+                  data-tech-name="${tech.name}"
+                  data-tech-cat="${i18n.pick(shelf.category)}"
+                  data-tech-usage="${i18n.pick(tech.usage)}"
+                  class="tech-book glass-card rounded-xl p-3 flex flex-col items-center justify-center gap-2 text-center border-b-4 border-b-[var(--accent)]/60 focus:outline-none">
+                  <img src="${tech.icon}" alt="Ícone ${tech.name}" class="w-9 h-9 object-contain" />
+                  <span class="font-mono text-xs font-bold leading-tight">${tech.name}</span>
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Base física da prateleira 3D -->
+            <div class="h-2.5 rounded-full bg-gradient-to-r from-slate-800 via-[var(--accent)]/40 to-slate-800 shadow-inner"></div>
+          </div>
+        `).join('');
+
+        // Atualiza banner ao passar o mouse ou tocar em um bloco
+        container.querySelectorAll('.tech-book').forEach(btn => {
+          const activate = () => {
+            container.querySelectorAll('.tech-book').forEach(b => b.classList.remove('active-book'));
+            btn.classList.add('active-book');
+            document.getElementById('tech-detail-name').textContent = btn.getAttribute('data-tech-name');
+            document.getElementById('tech-detail-cat').textContent = btn.getAttribute('data-tech-cat');
+            document.getElementById('tech-detail-usage').textContent = btn.getAttribute('data-tech-usage');
+          };
+          btn.addEventListener('mouseenter', activate);
+          btn.addEventListener('focus', activate);
+          btn.addEventListener('click', activate);
+        });
+      }
+    };
+
+    /* =========================================================================
+       MÓDULO 10: CONTATO, CURRÍCULO E TEMA CLARO/ESCURO
+    ========================================================================= */
+    const contato = {
+      init() {
+        // Preenche links estáticos do CONFIG
+        document.getElementById('hero-photo').src = CONFIG.personal.photo;
+        document.getElementById('link-github-hero').href = CONFIG.personal.githubUrl;
+        document.getElementById('link-linkedin-hero').href = CONFIG.personal.linkedinUrl;
+        document.getElementById('hero-whatsapp-link').href = CONFIG.personal.whatsappUrl;
+        document.getElementById('hero-phone-text').textContent = CONFIG.personal.phoneDisplay;
+        document.getElementById('hero-tel-link').href = CONFIG.personal.telUrl;
+
+        document.getElementById('footer-whatsapp-btn').href = CONFIG.personal.whatsappUrl;
+        document.getElementById('footer-linkedin').href = CONFIG.personal.linkedinUrl;
+        document.getElementById('footer-github').href = CONFIG.personal.githubUrl;
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        const cvHref = CONFIG.personal.resumeFile;
+        const heroCv = document.getElementById('btn-download-cv');
+        const footerCv = document.getElementById('footer-cv-btn');
+        heroCv.href = cvHref;
+        heroCv.setAttribute('download', cvHref);
+        footerCv.href = cvHref;
+        footerCv.setAttribute('download', cvHref);
+
+        // Microanimação 3D ao clicar no currículo (download direto, sem aviso de indisponível)
+        [heroCv, footerCv].forEach(link => {
+          link.addEventListener('click', () => {
+            link.style.transform = 'perspective(600px) rotateX(16deg) scale(0.96)';
+            setTimeout(() => { link.style.transform = ''; }, 260);
+          });
+        });
+
+        // Copiar e-mail com flip 3D + fallback
+        document.querySelectorAll('[data-copy-email]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const email = CONFIG.personal.email;
+            const label = btn.querySelector('.copy-email-label');
+            let copied = false;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              try {
+                await navigator.clipboard.writeText(email);
+                copied = true;
+              } catch (e) {}
+            }
+
+            if (!copied) {
+              try {
+                const ta = document.createElement('textarea');
+                ta.value = email;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                copied = document.execCommand('copy');
+                document.body.removeChild(ta);
+              } catch (e) {}
+            }
+
+            if (copied) {
+              btn.style.transform = 'perspective(600px) rotateX(360deg)';
+              label.textContent = i18n.t('copiedEmailBtn');
+              setTimeout(() => {
+                btn.style.transform = '';
+                label.textContent = i18n.t('copyEmailBtn');
+              }, 2000);
+            } else {
+              const container = btn.closest('.tilt-inner-depth');
+              const box = container ? container.querySelector('.email-fallback-box') : null;
+              if (box) {
+                box.classList.remove('hidden');
+                const inp = box.querySelector('.email-fallback-input');
+                inp.value = email;
+                inp.focus();
+                inp.select();
+              }
+            }
+          });
+        });
+
+        // Tema Claro / Escuro
+        try {
+          const savedTheme = localStorage.getItem('mt_portfolio_theme');
+          if (savedTheme === 'light') this.setTheme('light');
+        } catch (e) {}
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+          this.setTheme(state.theme === 'dark' ? 'light' : 'dark');
+        });
+
+        document.getElementById('lang-toggle').addEventListener('click', () => {
+          i18n.toggle();
+        });
+
+        document.getElementById('lightbox-close').addEventListener('click', () => projetos.closeLightbox());
+        document.getElementById('lightbox-modal').addEventListener('click', (e) => {
+          if (e.target.id === 'lightbox-modal') projetos.closeLightbox();
+        });
+      },
+
+      setTheme(mode) {
+        state.theme = mode;
+        const html = document.documentElement;
+        const sun = document.getElementById('icon-sun');
+        const moon = document.getElementById('icon-moon');
+
+        if (mode === 'light') {
+          html.classList.remove('dark');
+          html.classList.add('light');
+          sun.classList.remove('hidden');
+          moon.classList.add('hidden');
+          cena3D.updateThemeColors(true);
+        } else {
+          html.classList.remove('light');
+          html.classList.add('dark');
+          moon.classList.remove('hidden');
+          sun.classList.add('hidden');
+          cena3D.updateThemeColors(false);
+        }
+
+        try {
+          localStorage.setItem('mt_portfolio_theme', mode);
+        } catch (e) {}
+      }
+    };
+
+    /* =========================================================================
+       INICIALIZAÇÃO GERAL
+    ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      cena3D.init();
+      contato.init();
+      i18n.init();
+      efeitosUI.initTilt();
+      efeitosUI.initTypewriter();
+      navegacaoHorizontal.init();
+      githubApi.init();
+    });
+  </script>
+</body>
+</html>
